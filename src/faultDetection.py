@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.decomposition import PCA
 import umap
 from sklearn.cluster import DBSCAN
+from sklearn.manifold import TSNE
 from sklearn import metrics
 
 
@@ -55,8 +56,6 @@ class DR():
         rc_data = umap_model.inverse_transform(dr_data)
 
         return rc_data
-
-    #TODO: add performTSNE, reconstructTSNE
 
 
 class Clustering():
