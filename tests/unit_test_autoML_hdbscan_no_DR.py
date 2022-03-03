@@ -19,7 +19,7 @@ def test():
     print(f'Best min_cluster_size = {np.asarray(res.X)[:, 0]}')
     print(f'Best min_samples = {np.asarray(res.X)[:, 1]}')
     print(f'Best cluster_selection_epsilon = {np.asarray(res.X)[:, 2]}')
-    print(f'Best mst_score = {np.asarray(res.F)[:, 0]}')
+    print(f'Best sil_score = {np.asarray(-res.F)[:, 0]}')
     print('-----------------------------------')
 
     return None

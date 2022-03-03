@@ -89,13 +89,18 @@ class Clustering():
 
         scores = []
 
-        for label in labels:
-            cluster_list = []
-            for i in range(len(data[:, 0])):
-                if data[i, -1] == label:
-                    cluster_list.append(data[i])
+        #Divide the dataset into clusters
+        cluster_list = []
+        for i in range(len(labels)):
+            cluster_i = []
+            for j in range(len(data[:, 0])):
+                if data[j, -1] == labels[i]:
+                    cluster_i.append(data[j])
+            cluster_list.append(cluster_i)
 
-            cluster = np.asarray(cluster_list)
+        #clusters = np.asarray(cluster_list)
+
+        for cluster in cluster_list:
 
             dist_matrix = squareform(pdist(cluster))
 
@@ -104,17 +109,19 @@ class Clustering():
 
             # print(Tcsr)
 
-            average_dist = np.mean(Tcsr)
             n_edges = np.count_nonzero(Tcsr.toarray())
+            average_dist = np.sum(Tcsr) / n_edges
 
-            # print(average_dist)
+            #print(average_dist)
             # print(n_edges)
 
-            score = n_edges / average_dist
+            score = average_dist  # / n_edges
+            #print(f'cluster {label}, score = {score}')
 
             scores.append(score)
 
-        total_score = np.sum(np.asarray(scores))
+        total_score = np.sum(np.asarray(scores)) / len(labels)
+        #print(total_score)
 
         #print(total_score)
 
