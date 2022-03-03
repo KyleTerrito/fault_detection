@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_autoML_dbscan_no_DR import test
+from tests.unit_test_mstscore import test
 
 test()

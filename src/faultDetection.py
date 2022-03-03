@@ -6,11 +6,16 @@ Contains methods for Dimensionality reduction, clustering and fault detection
 """
 
 import numpy as np
+from sklearn import cluster
 from sklearn.decomposition import PCA
 import umap
 from sklearn.cluster import DBSCAN
+import hdbscan
 from sklearn.manifold import TSNE
 from sklearn import metrics
+from scipy.spatial.distance import pdist, squareform
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import minimum_spanning_tree
 
 
 class DR():
@@ -59,6 +64,7 @@ class DR():
 
 
 class Clustering():
+    #TODO: performSOMClustering
     '''
     Contains methods for clustering and clustering performance metrics
 
@@ -74,6 +80,46 @@ class Clustering():
     def silmetric(self, data, labels):
         return metrics.silhouette_score(data, labels)
 
+    def mstscore(self, data, labels):
+
+        if labels is None:
+            labels = [0] * len(data[:, 0])
+
+        data = np.column_stack((data, np.array(labels)))
+
+        scores = []
+
+        for label in labels:
+            cluster_list = []
+            for i in range(len(data[:, 0])):
+                if data[i, -1] == label:
+                    cluster_list.append(data[i])
+
+            cluster = np.asarray(cluster_list)
+
+            dist_matrix = squareform(pdist(cluster))
+
+            X = csr_matrix(dist_matrix)
+            Tcsr = minimum_spanning_tree(X)
+
+            # print(Tcsr)
+
+            average_dist = np.mean(Tcsr)
+            n_edges = np.count_nonzero(Tcsr.toarray())
+
+            # print(average_dist)
+            # print(n_edges)
+
+            score = n_edges / average_dist
+
+            scores.append(score)
+
+        total_score = np.sum(np.asarray(scores))
+
+        #print(total_score)
+
+        return total_score
+
     def performDBSCAN(self, data, hyperparameters):
 
         cl_model = DBSCAN(eps=hyperparameters[0],
@@ -82,7 +128,16 @@ class Clustering():
 
         return labels
 
-    #TODO: add performHDBSCAN, performSOMClustering
+    def performHDBSCAN(self, data, hyperparameters):
+
+        cl_model = hdbscan.HDBSCAN(
+            min_cluster_size=hyperparameters[0],
+            min_samples=hyperparameters[1],
+            cluster_selection_epsilon=hyperparameters[2])
+
+        labels = cl_model.fit_predict(data)
+
+        return labels
 
 
 class FaultDetection():

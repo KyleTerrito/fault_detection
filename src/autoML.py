@@ -141,6 +141,40 @@ class dbscanTuner(ElementwiseProblem):
         out["F"] = [-sil_score]
 
 
+class hdbscanTuner(ElementwiseProblem):
+    def __init__(self, data):
+        super().__init__(n_var=3,
+                         n_obj=1,
+                         n_constr=0,
+                         xl=[2, 1, 0.1],
+                         xu=[100, 100, 0.99])
+
+        self.data = data
+
+    def _evaluate(self, x, out, *args, **kwargs):
+        '''
+        x is the vector of hyperparameters
+
+        '''
+        #print(x)
+        cl = Clustering()
+
+        labels = cl.performHDBSCAN(self.data, x)
+
+        # print('------------------------')
+        # print(f'Number of labels = {len(set(labels))}')
+
+        if len(set(labels)) > 2:
+            sil_score = cl.silmetric(self.data, labels)
+        else:
+            sil_score = -1
+
+        # print('------------------------')
+        # print(f'silhouette score = {sil_score}')
+
+        out["F"] = [-sil_score]
+
+
 """---------------------Solvers----------------------------------------------------"""
 #TODO: add hdbscanSolver, tsneSolver
 
@@ -236,6 +270,31 @@ class Solvers(ElementwiseProblem):
         sampling, crossover, mutation = self.masker(mask=mask)
 
         problem = dbscanTuner(data)
+
+        algorithm = NSGA2(pop_size=5,
+                          n_offsprings=2,
+                          sampling=sampling,
+                          crossover=crossover,
+                          mutation=mutation,
+                          eliminate_duplicates=True)
+
+        res = minimize(problem,
+                       algorithm,
+                       termination=get_termination("n_gen", 10),
+                       seed=1,
+                       save_history=True,
+                       display=MyDisplay(),
+                       verbose=True)
+
+        return res
+
+    def hdbscanSolver(self, data):
+
+        mask = ['int', 'int', 'real']
+
+        sampling, crossover, mutation = self.masker(mask=mask)
+
+        problem = hdbscanTuner(data)
 
         algorithm = NSGA2(pop_size=5,
                           n_offsprings=2,
