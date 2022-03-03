@@ -34,7 +34,7 @@ class MyDisplay(Display):
     def _do(self, problem, evaluator, algorithm):
         super()._do(problem, evaluator, algorithm)
         #self.output.append("metric_a", -1 * (algorithm.pop.get("F")))
-        self.output.append("metric_a", -1 * min(algorithm.pop.get("F")))
+        self.output.append("metric_a", min(algorithm.pop.get("F")))
 
 
 """------------------Optimization problems----------------------------------------"""
@@ -164,15 +164,19 @@ class hdbscanTuner(ElementwiseProblem):
         # print('------------------------')
         # print(f'Number of labels = {len(set(labels))}')
 
-        if len(set(labels)) > 2:
-            sil_score = cl.silmetric(self.data, labels)
-        else:
-            sil_score = -1
+        # if len(set(labels)) > 2:
+        #     sil_score = cl.silmetric(self.data, labels)
+        # else:
+        #     sil_score = -1
+
+        # out["F"] = [-sil_score]
+
+        score = cl.mstscore(self.data, labels)
+
+        out["F"] = [score]
 
         # print('------------------------')
         # print(f'silhouette score = {sil_score}')
-
-        out["F"] = [-sil_score]
 
 
 """---------------------Solvers----------------------------------------------------"""
