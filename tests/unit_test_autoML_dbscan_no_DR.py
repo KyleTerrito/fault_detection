@@ -6,18 +6,13 @@ from src.faultDetection import DR
 
 def test():
 
-    data = np.asarray(
-        pd.read_excel(
-            'C:/Users/lbrice1/Dropbox/LSU/PSE@LSU/In-house Software/FastMan_Program/datasheet demethanizer_1.xlsx',
-            sheet_name='coldata'))
+    path = 'data/processed/demethanizer_test_1.xlsx'
 
-    # dr = DR()
-
-    # pca_model, dr_data = dr.performPCA(data, 3)
+    data = np.asarray(pd.read_excel(path, sheet_name='coldata'))
 
     solver = Solvers()
 
-    res = solver.solverDBSCAN(data)
+    res = solver.dbscanSolver(data)
 
     print('-----------------------------------')
     print(f'Best eps = {(res.X)[0]}')

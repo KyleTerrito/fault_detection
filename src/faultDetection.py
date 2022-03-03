@@ -13,6 +13,13 @@ from sklearn import metrics
 
 
 class DR():
+    '''
+    Contains methods for dimensionality reduction and data reconstruction
+
+    All DR methods must receive (data, hyperparameters) as inputs and return (model, reduced data)
+    
+    All reconstruction methods must receive (model, dr_data) and return (reconstructed data)
+    '''
     def __init__(self):
         pass
 
@@ -47,14 +54,19 @@ class DR():
 
         rc_data = umap_model.inverse_transform(dr_data)
 
-        print('------------------------')
-        print('reconstruction completed')
-        print('------------------------')
-
         return rc_data
+
+    #TODO: add performTSNE, reconstructTSNE
 
 
 class Clustering():
+    '''
+    Contains methods for clustering and clustering performance metrics
+
+    All clustering methods must receive (data, hyperparameters) as inputs and return (labels)
+    
+    All reconstruction methods must receive (data, labels) and return (metric score)
+    '''
     def __init__(self):
         pass
 
@@ -68,3 +80,12 @@ class Clustering():
         labels = cl_model.fit_predict(data)  #.labels_
 
         return labels
+
+    #TODO: add performHDBSCAN, performSOMClustering
+
+
+class FaultDetection():
+    def __init__(self):
+        pass
+
+    #TODO: add fault detection methods and performance metrics

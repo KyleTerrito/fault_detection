@@ -12,6 +12,6 @@ def test():
 
     solver = Solvers()
 
-    res = solver.solverUMAP(data)
+    res = solver.umapSolver(data)
 
     return None

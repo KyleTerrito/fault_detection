@@ -1,9 +1,14 @@
 """
-Standalone module
+-Standalone module
 
-Provides methods for AutoML via NSGA2 optimization
+-Provides methods for AutoML via NSGA2 optimization
 
-Contains tunable methods for Dimensionality reduction, clustering and fault detection
+-Tunable methods for dimensionality reduction, clustering and fault detection 
+are imported from src.faultDetection
+
+-A new class is needed for each dr/clustering/fd method to 
+define the optimization problem. See pcaTuner() for example.
+-Also a new function in Solvers() is needed.
 
 """
 import numpy as np
@@ -22,6 +27,7 @@ import sklearn
 
 import warnings
 warnings.filterwarnings("ignore")
+"""-------------------------------------------------------------------------------"""
 
 
 class MyDisplay(Display):
@@ -31,7 +37,20 @@ class MyDisplay(Display):
         self.output.append("metric_a", -1 * min(algorithm.pop.get("F")))
 
 
+"""------------------Optimization problems----------------------------------------"""
+#TODO: add hdbscanTuner, tsneTuner
+
+#TODO: add multiobjective optimization for dr+clustering+fault_detection problems
+
+
 class pcaTuner(ElementwiseProblem):
+    '''
+    n_var is the number of tunable hyperparameters for the method
+    n_obj is the number of objective functions (1 for most of the optimization problems here)
+    n_constr is always zero
+    xl and xu are lists containing the lower/upper limits allowed for each hyperparameter
+        These are based on either intuition or some recommendation for the method.
+    '''
     def __init__(self, data):
         super().__init__(n_var=1,
                          n_obj=1,
@@ -46,14 +65,18 @@ class pcaTuner(ElementwiseProblem):
         x is the vector of hyperparameters
 
         '''
+        #Initialize a DR object
         dr = DR()
 
+        #Use the corresponing DR method
         model, dr_data = dr.performPCA(self.data, x[0])
 
         rc_data = dr.reconstructPCA(model, dr_data)
 
+        #Compute performance metric
         mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
 
+        #Return value of objective function
         out["F"] = [mse]
 
 
@@ -81,9 +104,9 @@ class umapTuner(ElementwiseProblem):
 
         mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
 
-        print('------------------------')
-        print(f'mse = {mse}')
-        print('------------------------')
+        # print('------------------------')
+        # print(f'mse = {mse}')
+        # print('------------------------')
 
         out["F"] = [mse]
 
@@ -118,6 +141,10 @@ class dbscanTuner(ElementwiseProblem):
         out["F"] = [-sil_score]
 
 
+"""---------------------Solvers----------------------------------------------------"""
+#TODO: add hdbscanSolver, tsneSolver
+
+
 class Solvers(ElementwiseProblem):
     '''
     Standalone class
@@ -128,9 +155,12 @@ class Solvers(ElementwiseProblem):
     def __init__(self):
         super(ElementwiseProblem, self).__init__()
 
-    def solverPCA(self, data):
-
-        mask = ['int']
+    def masker(self, mask):
+        '''
+        mask: list containing the type of variable for each hyperparameter
+            it can be 'int' for integer variables (i.e., dimensions, min_samples) or
+            'real' for real variables (i.e., eps, min_distance).
+        '''
 
         sampling = MixedVariableSampling(mask, {
             "real": get_sampling("real_random"),
@@ -149,7 +179,15 @@ class Solvers(ElementwiseProblem):
                 "int": get_mutation("int_pm", eta=3.0)
             })
 
-        problem = pcaTuner(data)
+        return sampling, crossover, mutation
+
+    def pcaSolver(self, data):
+
+        mask = ['int']
+
+        sampling, crossover, mutation = self.masker(mask=mask)
+
+        problem = pcaTuner(data)  #use the corresponding problem
 
         algorithm = NSGA2(pop_size=300,
                           n_offsprings=4,
@@ -167,26 +205,11 @@ class Solvers(ElementwiseProblem):
 
         return res
 
-    def solverUMAP(self, data):
+    def umapSolver(self, data):
 
         mask = ['int', 'int', 'real']
 
-        sampling = MixedVariableSampling(mask, {
-            "real": get_sampling("real_random"),
-            "int": get_sampling("int_random")
-        })
-
-        crossover = MixedVariableCrossover(
-            mask, {
-                "real": get_crossover("real_sbx", prob=1.0, eta=3.0),
-                "int": get_crossover("int_sbx", prob=1.0, eta=3.0)
-            })
-
-        mutation = MixedVariableMutation(
-            mask, {
-                "real": get_mutation("real_pm", eta=3.0),
-                "int": get_mutation("int_pm", eta=3.0)
-            })
+        sampling, crossover, mutation = self.masker(mask=mask)
 
         problem = umapTuner(data)
 
@@ -206,26 +229,11 @@ class Solvers(ElementwiseProblem):
 
         return res
 
-    def solverDBSCAN(self, data):
+    def dbscanSolver(self, data):
 
         mask = ['real', 'int']
 
-        sampling = MixedVariableSampling(mask, {
-            "real": get_sampling("real_random"),
-            "int": get_sampling("int_random")
-        })
-
-        crossover = MixedVariableCrossover(
-            mask, {
-                "real": get_crossover("real_sbx", prob=1.0, eta=3.0),
-                "int": get_crossover("int_sbx", prob=1.0, eta=3.0)
-            })
-
-        mutation = MixedVariableMutation(
-            mask, {
-                "real": get_mutation("real_pm", eta=3.0),
-                "int": get_mutation("int_pm", eta=3.0)
-            })
+        sampling, crossover, mutation = self.masker(mask=mask)
 
         problem = dbscanTuner(data)
 
