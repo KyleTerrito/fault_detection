@@ -38,8 +38,6 @@ class MyDisplay(Display):
 
 
 """------------------Optimization problems----------------------------------------"""
-#TODO: add hdbscanTuner, tsneTuner
-
 #TODO: add multiobjective optimization for dr+clustering+fault_detection problems
 
 
@@ -180,7 +178,6 @@ class hdbscanTuner(ElementwiseProblem):
 
 
 """---------------------Solvers----------------------------------------------------"""
-#TODO: add hdbscanSolver, tsneSolver
 
 
 class Solvers(ElementwiseProblem):
