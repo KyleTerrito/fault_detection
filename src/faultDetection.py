@@ -16,9 +16,9 @@ class DR():
     '''
     Contains methods for dimensionality reduction and data reconstruction
 
-    All DR methods must receive (data, hyperparameters) as inputs and return (model, reduced data)
+    -All DR methods must receive (data, hyperparameters) as inputs and return (model, reduced data)
     
-    All reconstruction methods must receive (model, dr_data) and return (reconstructed data)
+    -All reconstruction methods must receive (model, dr_data) and return (reconstructed data)
     '''
     def __init__(self):
         pass
@@ -63,9 +63,11 @@ class Clustering():
     '''
     Contains methods for clustering and clustering performance metrics
 
-    All clustering methods must receive (data, hyperparameters) as inputs and return (labels)
+    -Metrics should be small is better
+
+    -All clustering methods must receive (data, hyperparameters) as inputs and return (labels)
     
-    All reconstruction methods must receive (data, labels) and return (metric score)
+    -All reconstruction methods must receive (data, labels) and return (metric score)
     '''
     def __init__(self):
         pass
