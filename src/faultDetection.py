@@ -13,7 +13,7 @@ from sklearn.cluster import DBSCAN
 import hdbscan
 from sklearn.manifold import TSNE
 from sklearn import metrics
-from sklearn import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from scipy.spatial.distance import pdist, squareform
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -180,7 +180,7 @@ class FaultDetection():
 
         confusion = metrics.multilabel_confusion_matrix(true_labels, predicted_labels)
 
-        accuracy = metrics. accuracy_score(true_labels, predicted_labels)
+        accuracy = metrics.accuracy_score(true_labels, predicted_labels)
 
         return confusion, accuracy
 

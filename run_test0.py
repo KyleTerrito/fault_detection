@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_autoML_hdbscan_no_DR import test
+from tests.unit_test_kNN import test
 
 test()
