@@ -167,10 +167,9 @@ class genTuner(ElementwiseProblem):
                                 labels=labels,
                                 hyperparameters=x[-1])
 
-        labels = fd.predict(knn_model=knn_model,
-                            test_data=self.data[-30:, :-1])
+        labels = fd.predict(knn_model=knn_model, test_data=self.data)
 
-        confusion, accuracy = fd.accuracy(true_labels=self.data[-30:, -1],
+        confusion, accuracy = fd.accuracy(true_labels=self.labels,
                                           predicted_labels=labels)
 
         out["F"] = [accuracy]

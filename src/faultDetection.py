@@ -202,7 +202,7 @@ class FaultDetection():
     def trainKNN(self, train_data, labels, hyperparameters):
 
         knn_model = KNeighborsClassifier(n_neighbors=hyperparameters[0])
-        
+
         knn_model.fit(train_data, labels)
 
         return knn_model
@@ -215,12 +215,9 @@ class FaultDetection():
 
     def accuracy(self, true_labels, predicted_labels):
 
-        confusion = metrics.multilabel_confusion_matrix(true_labels, predicted_labels)
+        confusion = metrics.multilabel_confusion_matrix(
+            true_labels, predicted_labels)
 
-        accuracy = metrics. accuracy_score(true_labels, predicted_labels)
+        accuracy = metrics.accuracy_score(true_labels, predicted_labels)
 
         return confusion, accuracy
-
-
-
-
