@@ -14,7 +14,7 @@ from sklearn.cluster import KMeans
 import hdbscan
 from sklearn.manifold import TSNE
 from sklearn import metrics
-from sklearn import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from scipy.spatial.distance import pdist, squareform
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import minimum_spanning_tree
