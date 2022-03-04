@@ -10,6 +10,7 @@ from sklearn import cluster
 from sklearn.decomposition import PCA
 import umap
 from sklearn.cluster import DBSCAN
+from sklearn.cluster import KMeans
 import hdbscan
 from sklearn.manifold import TSNE
 from sklearn import metrics
@@ -29,9 +30,23 @@ class DR():
     def __init__(self):
         pass
 
+    def performGEN(self, method, data, hyperparameters):
+
+        if 'PCA' in method:
+            return self.performPCA(data, hyperparameters)
+        elif 'UMAP' in method:
+            return self.performUMAP(data, hyperparameters)
+
+    def reconstructGEN(self, method, data, hyperparameters):
+
+        if 'PCA' in method:
+            return self.reconstructPCA(data, hyperparameters)
+        elif 'UMAP' in method:
+            return self.reconstructUMAP(data, hyperparameters)
+
     def performPCA(self, data, hyperparameters):
 
-        n_components = hyperparameters
+        n_components = hyperparameters[0]
 
         pca_model = PCA(n_components)
         pca_model.fit(data)
@@ -127,11 +142,33 @@ class Clustering():
 
         return total_score
 
+    def performGEN(self, method, data, hyperparameters):
+
+        if 'KMEANS' in method:
+            labels = self.performKMEANS(data, hyperparameters)
+
+        if 'HDBSCAN' in method:
+            labels = self.performHDBSCAN(data, hyperparameters)
+
+        if 'H' not in method and 'DBCAN' in method:
+            labels = self.performDBSCAN(data, hyperparameters)
+
+        return labels
+
     def performDBSCAN(self, data, hyperparameters):
 
         cl_model = DBSCAN(eps=hyperparameters[0],
                           min_samples=hyperparameters[1])
+
         labels = cl_model.fit_predict(data)  #.labels_
+
+        return labels
+
+    def performKMEANS(self, data, hyperparameters):
+
+        cl_model = KMeans(n_clusters=hyperparameters[0], random_state=0)
+
+        labels = cl_model.fit_predict(data)
 
         return labels
 

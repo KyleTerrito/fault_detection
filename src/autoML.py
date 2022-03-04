@@ -11,6 +11,7 @@ define the optimization problem. See pcaTuner() for example.
 -Also a new function in Solvers() is needed.
 
 """
+from telnetlib import EL
 import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.core.problem import ElementwiseProblem
@@ -34,11 +35,126 @@ class MyDisplay(Display):
     def _do(self, problem, evaluator, algorithm):
         super()._do(problem, evaluator, algorithm)
         #self.output.append("metric_a", -1 * (algorithm.pop.get("F")))
-        self.output.append("metric_a", -1 * min(algorithm.pop.get("F")))
+        self.output.append("metric_a", min(algorithm.pop.get("F")))
 
 
 """------------------Optimization problems----------------------------------------"""
 #TODO: add multiobjective optimization for dr+clustering+fault_detection problems
+
+
+class genTuner(ElementwiseProblem):
+    def __init__(self, data, methods):
+
+        self.dr_method = methods[0]
+        self.cl_method = methods[1]
+
+        if 'PCA' in methods:
+            self.dr_index = 1
+            self.n_var = 1
+            self.xl = [1]
+            self.xu = [min(len(data[:, 0]), len(data[0, :]))]
+
+            if 'KMEANS' in methods:
+                self.cl_index = -1
+                self.n_var += 1
+
+                self.xl.append(1)
+
+                self.xu.append(min(len(data[:, 0]), len(data[0, :])))
+
+            if 'HDBSCAN' in methods:
+                self.cl_index = -3
+                self.n_var += 3
+
+                self.xl.append(2)
+                self.xl.append(1)
+                self.xl.append(0.1)
+
+                self.xu.append(100)
+                self.xu.append(100)
+                self.xu.append(0.99)
+
+            if 'H' not in methods and 'DBSCAN' in methods:
+                self.cl_index = -2
+                self.n_var += 2
+
+                self.xl.append(1)
+                self.xl.append(3)
+
+                self.xu.append(100)
+                self.xu.append(50)
+
+        if 'UMAP' in methods:
+            self.dr_index = 3
+            self.n_var = 3
+            self.xl = [2, 2, 0],
+            self.xu = [25, 5, 0.99]
+
+            if 'KMEANS' in methods:
+                self.cl_index = -1
+                self.n_var += 1
+
+                self.xl.append(1)
+
+                self.xu.append(min(len(data[:, 0]), len(data[0, :])))
+
+            if 'HDBSCAN' in methods:
+                self.cl_index = -3
+                self.n_var += 3
+
+                self.xl.append(2)
+                self.xl.append(1)
+                self.xl.append(0.1)
+
+                self.xu.append(100)
+                self.xu.append(100)
+                self.xu.append(0.99)
+
+            if 'H' not in methods and 'DBSCAN' in methods:
+                self.cl_index = -2
+                self.n_var += 2
+
+                self.xl.append(1)
+                self.xl.append(3)
+
+                self.xu.append(100)
+                self.xu.append(50)
+
+        print(self.n_var)
+        print(self.xl)
+        print(self.xu)
+
+        super().__init__(n_var=self.n_var,
+                         n_obj=2,
+                         n_constr=0,
+                         xl=self.xl,
+                         xu=self.xu)
+
+        self.data = data
+
+    def _evaluate(self, x, out, *args, **kwargs):
+
+        #DR
+        dr = DR()
+        model, dr_data = dr.performGEN(self.dr_method, self.data,
+                                       x[:self.cl_index])
+
+        rc_data = dr.reconstructGEN(self.dr_method, model, dr_data)
+
+        #Compute performance metric
+        mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
+
+        cl = Clustering()
+
+        labels = cl.performGEN(self.cl_method, dr_data, x[self.cl_index:])
+        #print(labels)
+
+        if len(set(labels)) > 2:
+            sil_score = cl.silmetric(dr_data, labels)
+        else:
+            sil_score = -1
+
+        out["F"] = [mse, -sil_score]
 
 
 class pcaTuner(ElementwiseProblem):
@@ -67,7 +183,7 @@ class pcaTuner(ElementwiseProblem):
         dr = DR()
 
         #Use the corresponing DR method
-        model, dr_data = dr.performPCA(self.data, x[0])
+        model, dr_data = dr.performPCA(self.data, x)
 
         rc_data = dr.reconstructPCA(model, dr_data)
 
@@ -107,6 +223,28 @@ class umapTuner(ElementwiseProblem):
         # print('------------------------')
 
         out["F"] = [mse]
+
+
+class kmeansTuner(ElementwiseProblem):
+    def __init__(self, data):
+        super().__init__(n_var=1,
+                         n_obj=1,
+                         n_constr=0,
+                         xl=[1],
+                         xu=[min(len(data[:, 0]), len(data[0, :]))])
+
+    def _evaluate(self, x, out, *args, **kwargs):
+
+        cl = Clustering()
+
+        labels = cl.performKMEANS(self.data, x)
+
+        if len(set(labels)) > 2:
+            sil_score = cl.silmetric(self.data, labels)
+        else:
+            sil_score = -1
+
+        out["F"] = [-sil_score]
 
 
 class dbscanTuner(ElementwiseProblem):
@@ -217,6 +355,47 @@ class Solvers(ElementwiseProblem):
 
         return sampling, crossover, mutation
 
+    def genSolver(self, data, methods):
+        self.dr_method = methods[0]
+        self.cl_method = methods[1]
+        mask = []
+        if 'PCA' in methods:
+            mask.append('int')
+
+            if 'KMEANS' in methods:
+                mask.append('int')
+
+            if 'HDBSCAN' in methods:
+                mask.append('int')
+                mask.append('int')
+                mask.append('real')
+
+            if 'H' not in methods and 'DBSCAN' in methods:
+                mask.append('real')
+                mask.append('int')
+
+        print(mask)
+
+        sampling, crossover, mutation = self.masker(mask=mask)
+
+        problem = genTuner(data, methods)  #use the corresponding problem
+
+        algorithm = NSGA2(pop_size=300,
+                          n_offsprings=4,
+                          sampling=sampling,
+                          crossover=crossover,
+                          mutation=mutation,
+                          eliminate_duplicates=True)
+
+        res = minimize(problem,
+                       algorithm,
+                       termination=get_termination("n_gen", 10),
+                       seed=1,
+                       save_history=True,
+                       verbose=True)
+
+        return res
+
     def pcaSolver(self, data):
 
         mask = ['int']
@@ -261,6 +440,31 @@ class Solvers(ElementwiseProblem):
                        termination=get_termination("n_gen", 10),
                        seed=1,
                        save_history=True,
+                       verbose=True)
+
+        return res
+
+    def kmeansSolver(self, data):
+
+        mask = ['real']
+
+        sampling, crossover, mutation = self.masker(mask=mask)
+
+        problem = kmeansTuner(data)
+
+        algorithm = NSGA2(pop_size=5,
+                          n_offsprings=2,
+                          sampling=sampling,
+                          crossover=crossover,
+                          mutation=mutation,
+                          eliminate_duplicates=True)
+
+        res = minimize(problem,
+                       algorithm,
+                       termination=get_termination("n_gen", 10),
+                       seed=1,
+                       save_history=True,
+                       display=MyDisplay(),
                        verbose=True)
 
         return res
