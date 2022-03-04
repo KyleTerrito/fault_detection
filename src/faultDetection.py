@@ -14,6 +14,7 @@ from sklearn.cluster import KMeans
 import hdbscan
 from sklearn.manifold import TSNE
 from sklearn import metrics
+from sklearn import KNeighborsClassifier
 from scipy.spatial.distance import pdist, squareform
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -185,7 +186,41 @@ class Clustering():
 
 
 class FaultDetection():
+    '''
+    Contains methods for classification and fault detection performance metrics
+
+    -Metrics should be small is better
+
+    -All classification methods must receive (data, labels, hyperparameters) as inputs
+                                 and return (classification model)
+    
+    -All prediction methods must receive (classification model, test data) and return (predicted labels)
+    '''
     def __init__(self):
         pass
 
-    #TODO: add fault detection methods and performance metrics
+    def trainKNN(self, train_data, labels, hyperparameters):
+
+        knn_model = KNeighborsClassifier(n_neighbors=hyperparameters[0])
+        
+        knn_model.fit(train_data, labels)
+
+        return knn_model
+
+    def predict(self, knn_model, test_data):
+
+        predicted_labels = knn_model.predict(test_data)
+
+        return predicted_labels
+
+    def accuracy(self, true_labels, predicted_labels):
+
+        confusion = metrics.multilabel_confusion_matrix(true_labels, predicted_labels)
+
+        accuracy = metrics. accuracy_score(true_labels, predicted_labels)
+
+        return confusion, accuracy
+
+
+
+
