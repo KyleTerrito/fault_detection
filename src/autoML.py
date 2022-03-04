@@ -23,8 +23,9 @@ from pymoo.operators.mixed_variable_operator import (MixedVariableCrossover,
 from pymoo.optimize import minimize
 from pymoo.util.display import Display
 
-from src.faultDetection import DR, Clustering
+from src.faultDetection import DR, Clustering, FaultDetection
 import sklearn
+from math import sqrt
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -120,6 +121,11 @@ class genTuner(ElementwiseProblem):
                 self.xu.append(100)
                 self.xu.append(50)
 
+        #add hyperparameter for kNN
+        self.n_var += 1
+        self.xl.append(1)
+        self.xu.append(sqrt(len(data[0, :])))
+
         print(self.n_var)
         print(self.xl)
         print(self.xu)
@@ -141,20 +147,33 @@ class genTuner(ElementwiseProblem):
 
         rc_data = dr.reconstructGEN(self.dr_method, model, dr_data)
 
-        #Compute performance metric
         mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
 
+        #Clustering
         cl = Clustering()
 
-        labels = cl.performGEN(self.cl_method, dr_data, x[self.cl_index:])
-        #print(labels)
+        labels = cl.performGEN(self.cl_method, dr_data,
+                               x[(self.cl_index - 1):-1])
 
         if len(set(labels)) > 2:
             sil_score = cl.silmetric(dr_data, labels)
         else:
             sil_score = -1
 
-        out["F"] = [mse, -sil_score]
+        #Fault detection
+        fd = FaultDetection()
+
+        knn_model = fd.trainKNN(train_data=self.data,
+                                labels=labels,
+                                hyperparameters=x[-1])
+
+        labels = fd.predict(knn_model=knn_model,
+                            test_data=self.data[-30:, :-1])
+
+        confusion, accuracy = fd.accuracy(true_labels=self.data[-30:, -1],
+                                          predicted_labels=labels)
+
+        out["F"] = [accuracy]
 
 
 class pcaTuner(ElementwiseProblem):
