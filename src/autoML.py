@@ -131,7 +131,7 @@ class genTuner(ElementwiseProblem):
         print(self.xu)
 
         super().__init__(n_var=self.n_var,
-                         n_obj=2,
+                         n_obj=1,
                          n_constr=0,
                          xl=self.xl,
                          xu=self.xu)
@@ -163,16 +163,17 @@ class genTuner(ElementwiseProblem):
         #Fault detection
         fd = FaultDetection()
 
-        knn_model = fd.trainKNN(train_data=self.data,
-                                labels=labels,
+        knn_model = fd.trainKNN(train_data=self.data[:30, :],
+                                labels=labels[:30],
                                 hyperparameters=x[-1])
 
-        labels = fd.predict(knn_model=knn_model, test_data=self.data)
+        predicted_labels = fd.predict(knn_model=knn_model,
+                                      test_data=self.data[30:, :])
 
-        confusion, accuracy = fd.accuracy(true_labels=self.labels,
-                                          predicted_labels=labels)
+        confusion, accuracy = fd.accuracy(true_labels=labels[30:],
+                                          predicted_labels=predicted_labels)
 
-        out["F"] = [accuracy]
+        out["F"] = [-1 * accuracy]
 
 
 class pcaTuner(ElementwiseProblem):
@@ -391,6 +392,23 @@ class Solvers(ElementwiseProblem):
             if 'H' not in methods and 'DBSCAN' in methods:
                 mask.append('real')
                 mask.append('int')
+
+        if 'UMAP' in methods:
+            mask.append('int', 'int', 'real')
+
+            if 'KMEANS' in methods:
+                mask.append('int')
+
+            if 'HDBSCAN' in methods:
+                mask.append('int')
+                mask.append('int')
+                mask.append('real')
+
+            if 'H' not in methods and 'DBSCAN' in methods:
+                mask.append('real')
+                mask.append('int')
+
+        mask.append('int')
 
         print(mask)
 
