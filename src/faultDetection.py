@@ -201,7 +201,7 @@ class FaultDetection():
 
     def trainKNN(self, train_data, labels, hyperparameters):
 
-        knn_model = KNeighborsClassifier(n_neighbors=hyperparameters[0])
+        knn_model = KNeighborsClassifier(n_neighbors=hyperparameters)
 
         knn_model.fit(train_data, labels)
 
