@@ -25,5 +25,5 @@ class DataPreprocessing():
         return data
 
     #scaling
-    scaler = StandardScaler()
-    data = scaler.fit_transform(data)
+        scaler = StandardScaler()
+        data = scaler.fit_transform(data)
