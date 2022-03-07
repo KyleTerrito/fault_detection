@@ -10,15 +10,15 @@ def test():
 
     data = np.asarray(pd.read_excel(path, sheet_name='coldata'))
 
-    methods = ['PCA', 'HDBSCAN']
+    methods = ['UMAP', 'HDBSCAN']
 
     solver = Solvers()
 
     res = solver.genSolver(data, methods)
 
-    print('-----------------------------------')
-    print(res.X)
-    print(res.F)
-    print('-----------------------------------')
+    # print('-----------------------------------')
+    # print(res.X)
+    # print(res.F)
+    # print('-----------------------------------')
 
     return None
