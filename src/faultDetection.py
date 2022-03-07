@@ -65,8 +65,8 @@ class DR():
 
         umap_model = umap.UMAP(n_neighbors=hyperparameters[0],
                                init="random",
-                               n_components=hyperparameters[1],
-                               min_dist=hyperparameters[2]).fit(data)
+                               min_dist=hyperparameters[1],
+                               n_components=hyperparameters[2]).fit(data)
 
         dr_data = umap_model.transform(data)
 
