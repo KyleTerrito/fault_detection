@@ -14,7 +14,7 @@ from sklearn.cluster import KMeans
 import hdbscan
 from sklearn.manifold import TSNE
 from sklearn import metrics
-from sklearn import KNeighborsClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from scipy.spatial.distance import pdist, squareform
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import minimum_spanning_tree
@@ -65,8 +65,8 @@ class DR():
 
         umap_model = umap.UMAP(n_neighbors=hyperparameters[0],
                                init="random",
-                               n_components=hyperparameters[1],
-                               min_dist=hyperparameters[2]).fit(data)
+                               min_dist=hyperparameters[1],
+                               n_components=hyperparameters[2]).fit(data)
 
         dr_data = umap_model.transform(data)
 
@@ -201,8 +201,8 @@ class FaultDetection():
 
     def trainKNN(self, train_data, labels, hyperparameters):
 
-        knn_model = KNeighborsClassifier(n_neighbors=hyperparameters[0])
-        
+        knn_model = KNeighborsClassifier(n_neighbors=hyperparameters)
+
         knn_model.fit(train_data, labels)
 
         return knn_model
@@ -215,12 +215,9 @@ class FaultDetection():
 
     def accuracy(self, true_labels, predicted_labels):
 
-        confusion = metrics.multilabel_confusion_matrix(true_labels, predicted_labels)
+        confusion = metrics.multilabel_confusion_matrix(
+            true_labels, predicted_labels)
 
-        accuracy = metrics. accuracy_score(true_labels, predicted_labels)
+        accuracy = metrics.accuracy_score(true_labels, predicted_labels)
 
         return confusion, accuracy
-
-
-
-

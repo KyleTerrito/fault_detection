@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_kNN import test
+from tests.unit_test_genTuner import test
 
 test()

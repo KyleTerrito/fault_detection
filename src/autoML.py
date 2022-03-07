@@ -23,8 +23,10 @@ from pymoo.operators.mixed_variable_operator import (MixedVariableCrossover,
 from pymoo.optimize import minimize
 from pymoo.util.display import Display
 
-from src.faultDetection import DR, Clustering
+from src.faultDetection import DR, Clustering, FaultDetection
 import sklearn
+from math import sqrt, floor
+from tabulate import tabulate
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -48,113 +50,105 @@ class genTuner(ElementwiseProblem):
         self.dr_method = methods[0]
         self.cl_method = methods[1]
 
-        if 'PCA' in methods:
-            self.dr_index = 1
-            self.n_var = 1
-            self.xl = [1]
-            self.xu = [min(len(data[:, 0]), len(data[0, :]))]
+        self.setDRhyper(methods=self.dr_method, data=data)
+        self.setCLhyper(methods=self.cl_method, data=data)
 
-            if 'KMEANS' in methods:
-                self.cl_index = -1
-                self.n_var += 1
+        #add hyperparameter for kNN
+        self.n_var += 1
+        self.xl.extend([1])
+        self.xu.extend([floor(sqrt(len(data[0, :])))])
 
-                self.xl.append(1)
+        #print(self.n_var)
 
-                self.xu.append(min(len(data[:, 0]), len(data[0, :])))
-
-            if 'HDBSCAN' in methods:
-                self.cl_index = -3
-                self.n_var += 3
-
-                self.xl.append(2)
-                self.xl.append(1)
-                self.xl.append(0.1)
-
-                self.xu.append(100)
-                self.xu.append(100)
-                self.xu.append(0.99)
-
-            if 'H' not in methods and 'DBSCAN' in methods:
-                self.cl_index = -2
-                self.n_var += 2
-
-                self.xl.append(1)
-                self.xl.append(3)
-
-                self.xu.append(100)
-                self.xu.append(50)
-
-        if 'UMAP' in methods:
-            self.dr_index = 3
-            self.n_var = 3
-            self.xl = [2, 2, 0],
-            self.xu = [25, 5, 0.99]
-
-            if 'KMEANS' in methods:
-                self.cl_index = -1
-                self.n_var += 1
-
-                self.xl.append(1)
-
-                self.xu.append(min(len(data[:, 0]), len(data[0, :])))
-
-            if 'HDBSCAN' in methods:
-                self.cl_index = -3
-                self.n_var += 3
-
-                self.xl.append(2)
-                self.xl.append(1)
-                self.xl.append(0.1)
-
-                self.xu.append(100)
-                self.xu.append(100)
-                self.xu.append(0.99)
-
-            if 'H' not in methods and 'DBSCAN' in methods:
-                self.cl_index = -2
-                self.n_var += 2
-
-                self.xl.append(1)
-                self.xl.append(3)
-
-                self.xu.append(100)
-                self.xu.append(50)
-
-        print(self.n_var)
-        print(self.xl)
-        print(self.xu)
+        # print(self.xl)
+        # print(self.xu)
 
         super().__init__(n_var=self.n_var,
-                         n_obj=2,
+                         n_obj=1,
                          n_constr=0,
                          xl=self.xl,
                          xu=self.xu)
 
         self.data = data
 
+    def setDRhyper(self, methods, data):
+
+        if 'PCA' in methods:
+            self.dr_index = 1
+            self.n_var = 1
+            self.xl = [1]
+            self.xu = [min(len(data[:, 0]), len(data[0, :]))]
+
+        if 'UMAP' in methods:
+            self.dr_index = 3
+            self.n_var = 3
+            self.xl = [2, 0.1, 2]
+            self.xu = [25, 0.99, 5]
+
+    def setCLhyper(self, methods, data):
+
+        if 'KMEANS' in methods:
+            self.cl_index = -1
+            self.n_var += 1
+
+            self.xl.extend([1])
+
+            self.xu.extend([min(len(data[:, 0]), len(data[0, :]))])
+
+        if 'HDBSCAN' in methods:
+            self.cl_index = -3
+            self.n_var += 3
+
+            self.xl.extend([2, 1, 0.1])
+            self.xu.extend([100, 100, 0.99])
+
+        if 'H' not in methods and 'DBSCAN' in methods:
+            self.cl_index = -2
+            self.n_var += 2
+
+            self.xl.extend([1, 3])
+
+            self.xu.extend([100, 50])
+
     def _evaluate(self, x, out, *args, **kwargs):
 
         #DR
+        print('Performing DR')
         dr = DR()
         model, dr_data = dr.performGEN(self.dr_method, self.data,
                                        x[:self.cl_index])
 
         rc_data = dr.reconstructGEN(self.dr_method, model, dr_data)
 
-        #Compute performance metric
         mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
 
+        #Clustering
+        print('Performing CL')
         cl = Clustering()
 
-        labels = cl.performGEN(self.cl_method, dr_data, x[self.cl_index:])
-        #print(labels)
+        labels = cl.performGEN(self.cl_method, dr_data,
+                               x[(self.cl_index - 1):-1])
 
         if len(set(labels)) > 2:
             sil_score = cl.silmetric(dr_data, labels)
         else:
             sil_score = -1
 
-        out["F"] = [mse, -sil_score]
+        #Fault detection
+        print('Performing FD')
+        fd = FaultDetection()
+
+        knn_model = fd.trainKNN(train_data=self.data[:30, :],
+                                labels=labels[:30],
+                                hyperparameters=x[-1])
+
+        predicted_labels = fd.predict(knn_model=knn_model,
+                                      test_data=self.data[30:, :])
+
+        confusion, accuracy = fd.accuracy(true_labels=labels[30:],
+                                          predicted_labels=predicted_labels)
+
+        out["F"] = [-1 * accuracy]
 
 
 class pcaTuner(ElementwiseProblem):
@@ -209,7 +203,7 @@ class umapTuner(ElementwiseProblem):
         x is the vector of hyperparameters
 
         '''
-        print(x)
+
         dr = DR()
 
         model, dr_data = dr.performUMAP(self.data, x)
@@ -217,10 +211,6 @@ class umapTuner(ElementwiseProblem):
         rc_data = dr.reconstructUMAP(model, dr_data)
 
         mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
-
-        # print('------------------------')
-        # print(f'mse = {mse}')
-        # print('------------------------')
 
         out["F"] = [mse]
 
@@ -258,21 +248,15 @@ class dbscanTuner(ElementwiseProblem):
         x is the vector of hyperparameters
 
         '''
-        #print(x)
+
         cl = Clustering()
 
         labels = cl.performDBSCAN(self.data, x)
-
-        # print('------------------------')
-        # print(f'Number of labels = {len(set(labels))}')
 
         if len(set(labels)) > 2:
             sil_score = cl.silmetric(self.data, labels)
         else:
             sil_score = -1
-
-        # print('------------------------')
-        # print(f'silhouette score = {sil_score}')
 
         out["F"] = [-sil_score]
 
@@ -292,14 +276,9 @@ class hdbscanTuner(ElementwiseProblem):
         x is the vector of hyperparameters
 
         '''
-        #print(x)
         cl = Clustering()
 
         labels = cl.performHDBSCAN(self.data, x)
-        #print(labels)
-
-        # print('------------------------')
-        # print(f'Number of labels = {len(set(labels))}')
 
         if len(set(labels)) > 2:
             sil_score = cl.silmetric(self.data, labels)
@@ -307,13 +286,6 @@ class hdbscanTuner(ElementwiseProblem):
             sil_score = -1
 
         out["F"] = [-sil_score]
-
-        # score = cl.mstscore(self.data, labels)
-
-        # out["F"] = [score]
-
-        # print('------------------------')
-        # print(f'silhouette score = {sil_score}')
 
 
 """---------------------Solvers----------------------------------------------------"""
@@ -355,30 +327,66 @@ class Solvers(ElementwiseProblem):
 
         return sampling, crossover, mutation
 
+    def setDRmethodmask(self, methods):
+        if 'PCA' in methods:
+            self.mask_names.append('n_comp')
+            self.mask.append('int')
+
+        if 'UMAP' in methods:
+            self.mask_names.extend(['n_neighbors', 'min_dist', 'n_components'])
+            self.mask.extend(['int', 'real', 'int'])
+
+    def setCLmethodmask(self, methods):
+        if 'KMEANS' in methods:
+            self.mask_names.extend(['n_clusters'])
+            self.mask.extend(['int'])
+
+        if 'HDBSCAN' in methods:
+            self.mask_names.extend([
+                'min_cluster_size', 'min_samples', 'cluster_selection_epsilon'
+            ])
+            self.mask.extend(['int', 'int', 'real'])
+
+        if 'H' not in methods and 'DBSCAN' in methods:
+            self.mask_names.extend(['eps', 'min_samples'])
+            self.mask.extend(['real', 'int'])
+
     def genSolver(self, data, methods):
         self.dr_method = methods[0]
         self.cl_method = methods[1]
-        mask = []
-        if 'PCA' in methods:
-            mask.append('int')
+        self.mask = []
+        self.mask_names = []
 
-            if 'KMEANS' in methods:
-                mask.append('int')
+        self.setDRmethodmask(methods)
+        self.setCLmethodmask(methods)
 
-            if 'HDBSCAN' in methods:
-                mask.append('int')
-                mask.append('int')
-                mask.append('real')
+        self.mask_names.append('num_neighbors')
+        self.mask.append('int')
 
-            if 'H' not in methods and 'DBSCAN' in methods:
-                mask.append('real')
-                mask.append('int')
-
-        print(mask)
-
-        sampling, crossover, mutation = self.masker(mask=mask)
+        sampling, crossover, mutation = self.masker(mask=self.mask)
 
         problem = genTuner(data, methods)  #use the corresponding problem
+
+        # dv_dict = dict(
+        #     zip(self.mask_names, [self.mask, problem.xl, problem.xu]))
+        ''' print decision variables for opt problem -----------------------'''
+
+        dv_dict = {
+            z[0]: list(z[1:])
+            for z in zip(self.mask_names, self.mask, problem.xl, problem.xu)
+        }
+
+        table = []
+        for key, value in dv_dict.items():
+            table.extend([[key, value[0], value[1], value[2]]])
+
+        print(
+            tabulate(table,
+                     headers=[
+                         'hyperparameter', 'type', 'lower limit', 'upper limit'
+                     ],
+                     tablefmt="rst"))
+        '''---------------------------------------------------------------'''
 
         algorithm = NSGA2(pop_size=300,
                           n_offsprings=4,
