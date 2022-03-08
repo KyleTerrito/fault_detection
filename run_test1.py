@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_genTuner import test
+from tests.unit_test_ensemble import test
 
 test()
