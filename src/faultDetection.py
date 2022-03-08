@@ -213,6 +213,49 @@ class FaultDetection():
 
         return predicted_labels
 
+    def alignLabels(self, true_labels, predicted_labels, majority_threshold_percentage = 0.8, print_reassignments=False):
+
+        ground_truth_set = list(set(true_labels))
+        predicted_labels_set = list(set(predicted_labels))
+        aligned_labels_set = set(predicted_labels_set)
+        aligned_labels = np.empty_like(predicted_labels)
+
+        for label in range(len(predicted_labels_set)):
+            #Takes one predicted cluster at a time
+            this_label = predicted_labels_set[label]
+            this_cluster_mask = predicted_labels == predicted_labels_set[label]
+            this_pred_cluster = predicted_labels[this_cluster_mask]
+            this_true_cluster = true_labels[this_cluster_mask]
+        
+            #Check to see if all members of this predicted cluster share the same ground truth label
+            if not np.all(this_true_cluster == this_true_cluster[0]):
+                unique, counts = np.unique(this_true_cluster, return_counts=True)
+                majority_share = max(counts) / sum(counts)
+                
+                if majority_share > majority_threshold_percentage:
+                    #If this cluster is split, but one class holds an 80% majority, let's assign them all to that class
+                    majority_name = unique[np.where(counts==max(counts))][0]
+                    aligned_labels[this_cluster_mask] = majority_name
+                    if print_reassignments:
+                        print(f"Assigned cluster with {majority_share*100}% majority to cluster: {majority_name}")
+                else:
+                    #If the split is closer to 50-50, then let's separate this predicted cluster as a brand new cluster
+                    new_cluster_name = max(aligned_labels_set) + 1
+                    aligned_labels_set.add(new_cluster_name)
+                    aligned_labels[this_cluster_mask] = new_cluster_name
+                    if print_reassignments:
+                        print(f"Assigned predicted cluster:{this_label} to new cluster:{new_cluster_name}")
+            else:
+                #This cluster is consistent, so we can assign it to the cluster it matches
+                aligned_labels[this_cluster_mask] = this_true_cluster[0]
+                if print_reassignments:
+                    print(f"Assigned consistent cluster: {this_true_cluster[0]}")
+
+
+        return aligned_labels
+            
+
+
     def accuracy(self, true_labels, predicted_labels):
 
         confusion = metrics.multilabel_confusion_matrix(
