@@ -3,14 +3,14 @@ from src.dataPreprocessing import DataPreprocessing
 import numpy as np
 import pandas as pd
 from tabulate import tabulate
-from datetime import datetime
+from datetime import datetime, date
 
 
 def test():
     '''
     Tests the optimized ensembles of DR+CL methods + kNN
     Accuracy corresponds to kNN against CL labels.
-    Stores resutls in /src/results.txt
+    Stores resutls in /tests/results.txt
     
     '''
 
@@ -18,13 +18,15 @@ def test():
 
     X_train, X_test, y_train, y_test = preprocessor.load_data()
 
-    dr_methods = ['PCA', 'UMAP']
+    dr_methods = ['PCA']  #, 'UMAP']
     cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
     ensembles = []
     accuracies_list = []
 
-    f = open('results.txt', 'w')
+    today = date.today()
+    d = today.strftime("%b-%d-%Y")
+    f = open(f'tests/result_unit_test_ensemble{d}.txt', 'w')
 
     for dr_method in dr_methods:
         for cl_method in cl_methods:
