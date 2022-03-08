@@ -14,6 +14,7 @@ define the optimization problem. See pcaTuner() for example.
 from telnetlib import EL
 import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
+from pymoo.algorithms.soo.nonconvex.ga import GA
 from pymoo.core.problem import ElementwiseProblem
 from pymoo.factory import (get_crossover, get_mutation, get_sampling,
                            get_termination)
@@ -24,6 +25,7 @@ from pymoo.optimize import minimize
 from pymoo.util.display import Display
 
 from src.faultDetection import DR, Clustering, FaultDetection
+from src.dataPreprocessing import DataPreprocessing
 import sklearn
 from math import sqrt, floor
 from tabulate import tabulate
@@ -41,22 +43,22 @@ class MyDisplay(Display):
 
 
 """------------------Optimization problems----------------------------------------"""
-#TODO: add multiobjective optimization for dr+clustering+fault_detection problems
+#TODO: update individual dr/cl methods for new data naming convention
 
 
 class genTuner(ElementwiseProblem):
-    def __init__(self, data, methods):
+    def __init__(self, train_data, test_data, true_labels, methods):
 
         self.dr_method = methods[0]
         self.cl_method = methods[1]
 
-        self.setDRhyper(methods=self.dr_method, data=data)
-        self.setCLhyper(methods=self.cl_method, data=data)
+        self.setDRhyper(methods=self.dr_method, train_data=train_data)
+        self.setCLhyper(methods=self.cl_method, train_data=train_data)
 
         #add hyperparameter for kNN
         self.n_var += 1
         self.xl.extend([1])
-        self.xu.extend([floor(sqrt(len(data[0, :])))])
+        self.xu.extend([floor(sqrt(len(train_data)))])
 
         #print(self.n_var)
 
@@ -69,15 +71,17 @@ class genTuner(ElementwiseProblem):
                          xl=self.xl,
                          xu=self.xu)
 
-        self.data = data
+        self.train_data = train_data
+        self.test_data = test_data
+        self.true_labels = true_labels
 
-    def setDRhyper(self, methods, data):
+    def setDRhyper(self, methods, train_data):
 
         if 'PCA' in methods:
             self.dr_index = 1
             self.n_var = 1
             self.xl = [1]
-            self.xu = [min(len(data[:, 0]), len(data[0, :]))]
+            self.xu = [min(len(train_data[:, 0]), len(train_data[0, :]))]
 
         if 'UMAP' in methods:
             self.dr_index = 3
@@ -85,7 +89,7 @@ class genTuner(ElementwiseProblem):
             self.xl = [2, 0.1, 2]
             self.xu = [25, 0.99, 5]
 
-    def setCLhyper(self, methods, data):
+    def setCLhyper(self, methods, train_data):
 
         if 'KMEANS' in methods:
             self.cl_index = -1
@@ -93,7 +97,7 @@ class genTuner(ElementwiseProblem):
 
             self.xl.extend([1])
 
-            self.xu.extend([min(len(data[:, 0]), len(data[0, :]))])
+            self.xu.extend([min(len(train_data[:, 0]), len(train_data[0, :]))])
 
         if 'HDBSCAN' in methods:
             self.cl_index = -3
@@ -113,40 +117,50 @@ class genTuner(ElementwiseProblem):
     def _evaluate(self, x, out, *args, **kwargs):
 
         #DR
-        print('Performing DR')
+
         dr = DR()
-        model, dr_data = dr.performGEN(self.dr_method, self.data,
+        model, dr_data = dr.performGEN(self.dr_method, self.train_data,
                                        x[:self.cl_index])
 
         rc_data = dr.reconstructGEN(self.dr_method, model, dr_data)
 
-        mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
+        mse = sklearn.metrics.mean_squared_error(self.train_data, rc_data)
 
         #Clustering
-        print('Performing CL')
+
         cl = Clustering()
 
-        labels = cl.performGEN(self.cl_method, dr_data,
-                               x[(self.cl_index - 1):-1])
+        train_labels = cl.performGEN(self.cl_method, dr_data,
+                                     x[(self.cl_index - 1):-1])
 
-        if len(set(labels)) > 2:
-            sil_score = cl.silmetric(dr_data, labels)
+        if len(set(train_labels)) > 2:
+            sil_score = cl.silmetric(dr_data, train_labels)
         else:
             sil_score = -1
 
         #Fault detection
-        print('Performing FD')
-        fd = FaultDetection()
 
-        knn_model = fd.trainKNN(train_data=self.data[:30, :],
-                                labels=labels[:30],
+        fd = FaultDetection()
+        dp = DataPreprocessing()
+
+        X_train, X_test, y_train, y_test = dp.train_test_split(dr_data,
+                                                               train_labels,
+                                                               test_size=0.2)
+
+        knn_model = fd.trainKNN(train_data=X_train,
+                                labels=y_train,
                                 hyperparameters=x[-1])
 
-        predicted_labels = fd.predict(knn_model=knn_model,
-                                      test_data=self.data[30:, :])
+        y_test_predicted = fd.predict(knn_model=knn_model, test_data=X_test)
+        """
+        Labels alignment goes here
+        """
+        true_labels_as_floats = []
+        for el in self.true_labels:
+            true_labels_as_floats.append(float(el[-1]))
 
-        confusion, accuracy = fd.accuracy(true_labels=labels[30:],
-                                          predicted_labels=predicted_labels)
+        confusion, accuracy = fd.accuracy(true_labels=y_test,
+                                          predicted_labels=y_test_predicted)
 
         out["F"] = [-1 * accuracy]
 
@@ -351,7 +365,7 @@ class Solvers(ElementwiseProblem):
             self.mask_names.extend(['eps', 'min_samples'])
             self.mask.extend(['real', 'int'])
 
-    def genSolver(self, data, methods):
+    def genSolver(self, train_data, test_data, true_labels, methods):
         self.dr_method = methods[0]
         self.cl_method = methods[1]
         self.mask = []
@@ -365,7 +379,8 @@ class Solvers(ElementwiseProblem):
 
         sampling, crossover, mutation = self.masker(mask=self.mask)
 
-        problem = genTuner(data, methods)  #use the corresponding problem
+        problem = genTuner(train_data, test_data, true_labels,
+                           methods)  #use the corresponding problem
 
         # dv_dict = dict(
         #     zip(self.mask_names, [self.mask, problem.xl, problem.xu]))
@@ -388,12 +403,19 @@ class Solvers(ElementwiseProblem):
                      tablefmt="rst"))
         '''---------------------------------------------------------------'''
 
-        algorithm = NSGA2(pop_size=300,
-                          n_offsprings=4,
-                          sampling=sampling,
-                          crossover=crossover,
-                          mutation=mutation,
-                          eliminate_duplicates=True)
+        # algorithm = NSGA2(pop_size=5,
+        #                   n_offsprings=2,
+        #                   sampling=sampling,
+        #                   crossover=crossover,
+        #                   mutation=mutation,
+        #                   eliminate_duplicates=True)
+
+        algorithm = GA(pop_size=5,
+                       n_offsprings=2,
+                       sampling=sampling,
+                       crossover=crossover,
+                       mutation=mutation,
+                       eliminate_duplicates=True)
 
         res = minimize(problem,
                        algorithm,

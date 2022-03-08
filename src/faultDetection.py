@@ -148,10 +148,10 @@ class Clustering():
         if 'KMEANS' in method:
             labels = self.performKMEANS(data, hyperparameters)
 
-        if 'HDBSCAN' in method:
+        elif 'HDBSCAN' in method:
             labels = self.performHDBSCAN(data, hyperparameters)
 
-        if 'H' not in method and 'DBCAN' in method:
+        elif 'DBSCAN' in method:
             labels = self.performDBSCAN(data, hyperparameters)
 
         return labels
