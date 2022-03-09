@@ -29,6 +29,7 @@ from src.dataPreprocessing import DataPreprocessing
 import sklearn
 from math import sqrt, floor
 from tabulate import tabulate
+from sklearn import preprocessing
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -73,7 +74,10 @@ class genTuner(ElementwiseProblem):
 
         self.train_data = train_data
         self.test_data = test_data
-        self.true_labels = true_labels
+
+        le = preprocessing.LabelEncoder().fit(true_labels)
+        true_labels = le.transform(true_labels)
+        self.true_labels = np.asarray(true_labels)
 
     def setDRhyper(self, methods, train_data):
 
@@ -119,10 +123,10 @@ class genTuner(ElementwiseProblem):
         #DR
 
         dr = DR()
-        model, dr_data = dr.performGEN(self.dr_method, self.train_data,
-                                       x[:self.cl_index])
+        dr_model, dr_data = dr.performGEN(self.dr_method, self.train_data,
+                                          x[:self.cl_index])
 
-        rc_data = dr.reconstructGEN(self.dr_method, model, dr_data)
+        rc_data = dr.reconstructGEN(self.dr_method, dr_model, dr_data)
 
         mse = sklearn.metrics.mean_squared_error(self.train_data, rc_data)
 
@@ -130,11 +134,11 @@ class genTuner(ElementwiseProblem):
 
         cl = Clustering()
 
-        train_labels = cl.performGEN(self.cl_method, dr_data,
-                                     x[(self.cl_index - 1):-1])
+        cl_train_labels = cl.performGEN(self.cl_method, dr_data,
+                                        x[(self.cl_index - 1):-1])
 
-        if len(set(train_labels)) > 2:
-            sil_score = cl.silmetric(dr_data, train_labels)
+        if len(set(cl_train_labels)) > 2:
+            sil_score = cl.silmetric(dr_data, cl_train_labels)
         else:
             sil_score = -1
 
@@ -143,26 +147,39 @@ class genTuner(ElementwiseProblem):
         fd = FaultDetection()
         dp = DataPreprocessing()
 
-        X_train, X_test, y_train, y_test = dp.train_test_split(dr_data,
-                                                               train_labels,
-                                                               test_size=0.2)
+        cl_X_train, cl_X_test, cl_y_train, cl_y_test = dp.train_test_split(
+            dr_data, cl_train_labels, test_size=0.2)
 
-        knn_model = fd.trainKNN(train_data=X_train,
-                                labels=y_train,
+        knn_model = fd.trainKNN(train_data=cl_X_train,
+                                labels=cl_y_train,
                                 hyperparameters=x[-1])
+        ''''
+        Test kNN training against CL labels
+        '''
 
-        y_test_predicted = fd.predict(knn_model=knn_model, test_data=X_test)
-        
-        aligned_predicted_labels = fd.alignLabels(y_test,
-                                                  y_test_predicted,
-                                                  majority_threshold_percentage=0.8)
+        knn_y_test_predicted = fd.predict(knn_model=knn_model,
+                                          test_data=cl_X_test)
 
-        true_labels_as_floats = []
-        for el in self.true_labels:
-            true_labels_as_floats.append(float(el[-1]))
+        kNN_accuracy = fd.accuracy(true_labels=cl_y_test,
+                                   predicted_labels=knn_y_test_predicted)
+        '''
+        Test kNN model against ground truth labels
+        '''
 
-        confusion, accuracy = fd.accuracy(true_labels=y_test,
-                                          predicted_labels=aligned_predicted_labels)
+        reduced_test_data = dr_model.transform(self.test_data)
+
+        real_y_test_predicted = fd.predict(knn_model=knn_model,
+                                           test_data=reduced_test_data)
+
+        aligned_predicted_labels = fd.alignLabels(
+            self.true_labels,
+            real_y_test_predicted,
+            majority_threshold_percentage=0.8)
+
+        #cl_y_test are the labels from CL, self.true_labels are the ground truth labels
+        confusion, accuracy = fd.accuracy(
+            true_labels=self.true_labels,
+            predicted_labels=aligned_predicted_labels)
 
         out["F"] = [-1 * accuracy]
 

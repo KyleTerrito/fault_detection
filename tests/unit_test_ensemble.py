@@ -22,11 +22,13 @@ def test():
     cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
     ensembles = []
+    solutions_list = []
     accuracies_list = []
 
     today = date.today()
     d = today.strftime("%b-%d-%Y")
-    f = open(f'tests/result_unit_test_ensemble{d}.txt', 'w')
+    f = open(f'tests/ensemble_test_results/result_unit_test_ensemble{d}.txt',
+             'w')
 
     for dr_method in dr_methods:
         for cl_method in cl_methods:
@@ -43,22 +45,31 @@ def test():
                                    methods=methods)
 
             ensembles.append((dr_method, cl_method))
+            solutions_list.append((res.X))
             accuracies_list.append((-1 * res.F))
     ''' print results -------------------------- -----------------------'''
 
-    res_dict = {z[0]: list(z[1:]) for z in zip(ensembles, accuracies_list)}
+    res_dict = {
+        z[0]: list(z[1:])
+        for z in zip(ensembles, solutions_list, accuracies_list)
+    }
 
     table = []
     for key, value in res_dict.items():
-        table.extend([[key, value[0]]])
+        table.extend([[key, value[0], value[1]]])
 
     now = datetime.now()
 
     print(now.strftime("%Y/%m/%d %H:%M:%S"), file=f)
 
-    print(tabulate(table, headers=['ensemble', 'accuracies'], tablefmt="rst"),
+    print(tabulate(table,
+                   headers=['ensemble', 'solutions', 'accuracies'],
+                   tablefmt="rst"),
           file=f)
 
-    print(tabulate(table, headers=['ensemble', 'accuracies'], tablefmt="rst"))
+    print(
+        tabulate(table,
+                 headers=['ensemble', 'solutions', 'accuracies'],
+                 tablefmt="rst"))
     '''---------------------------------------------------------------'''
     return None
