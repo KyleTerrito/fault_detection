@@ -152,15 +152,17 @@ class genTuner(ElementwiseProblem):
                                 hyperparameters=x[-1])
 
         y_test_predicted = fd.predict(knn_model=knn_model, test_data=X_test)
-        """
-        Labels alignment goes here
-        """
+        
+        aligned_predicted_labels = fd.alignLabels(y_test,
+                                                  y_test_predicted,
+                                                  majority_threshold_percentage=0.8)
+
         true_labels_as_floats = []
         for el in self.true_labels:
             true_labels_as_floats.append(float(el[-1]))
 
         confusion, accuracy = fd.accuracy(true_labels=y_test,
-                                          predicted_labels=y_test_predicted)
+                                          predicted_labels=aligned_predicted_labels)
 
         out["F"] = [-1 * accuracy]
 
