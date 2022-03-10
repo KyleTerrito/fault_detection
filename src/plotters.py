@@ -57,22 +57,75 @@ class Plotters():
         }
 
         if reconstruction_errors is not None:
-            fig = plt.figure(figsize=(7, 5))
-            axs0 = fig.add_subplot(1, 1, 1)
+            figname = 'Fig3'
+            fig = plt.figure(figsize=(10, 5))
+            axs0 = fig.add_subplot(1, 2, 1)
+            axs1 = fig.add_subplot(1, 2, 2)
             i = 0
 
             for key, value in res_dict.items():
 
                 x = k_dict[' '.join(key)]
+                print(x)
 
-                if reconstruction_errors[i] > 0:
-                    axs0.bar(x,
-                             reconstruction_errors[i] /
-                             max(reconstruction_errors),
-                             align='center',
-                             width=0.3)
+                if 'UMAP' in x[0]:
+                    if reconstruction_errors[i] > 0:
+                        axs1.bar(x,
+                                 reconstruction_errors[i],
+                                 align='center',
+                                 width=0.3)
+
+                    for tick in axs1.get_xticklabels():
+                        tick.set_fontname("Times New Roman")
+                    for tick in axs1.get_yticklabels():
+                        tick.set_fontname("Times New Roman")
+
+                    axs1.yaxis.set_major_locator(AutoLocator())
+                    axs1.yaxis.set_minor_locator(AutoMinorLocator())
+                    axs1.tick_params(direction='out',
+                                     pad=10,
+                                     length=9,
+                                     width=1.0,
+                                     labelsize='large')
+                    axs1.tick_params(which='minor',
+                                     direction='out',
+                                     pad=10,
+                                     length=5,
+                                     width=1.0,
+                                     labelsize='large')
+
+                    for axis in ['top', 'bottom', 'left', 'right']:
+                        axs1.spines[axis].set_linewidth(1.0)
+
+                else:
+                    if reconstruction_errors[i] > 0:
+                        axs0.bar(x,
+                                 reconstruction_errors[i],
+                                 align='center',
+                                 width=0.3)
+
                 i += 1
+
+            axs0.set_ylabel(r'$\rm Reconstruction\ error\ (MSE)$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs1.set_ylabel(r'$\rm Reconstruction\ error\ (MSE)$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs1.set_xlabel(r'$\rm Ensemble$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs0.set_ylim(0, )
+            axs1.set_ylim(0, )
+
         if sil_scores is not None:
+            figname = 'Fig4'
             fig = plt.figure(figsize=(12, 5))
             axs0 = fig.add_subplot(1, 1, 1)
             i = 0
@@ -80,16 +133,16 @@ class Plotters():
             for key, value in res_dict.items():
                 x = k_dict[' '.join(key)]
 
-                axs0.bar(x,
-                         sil_scores[i] / max(sil_scores),
-                         align='center',
-                         width=0.3)
+                axs0.bar(x, sil_scores[i], align='center', width=0.3)
                 i += 1
 
-        axs0.set_ylabel(r'$\rm Value$',
-                        labelpad=5,
-                        fontsize='x-large',
-                        fontname='Times New Roman')
+            axs0.set_ylabel(r'$\rm Silhouette\ score$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs0.plot([-1, 9], [0, 0], color='k', linewidth=1.0)
+            axs0.set_xlim(-1, 9)
 
         axs0.set_xlabel(r'$\rm Ensemble$',
                         labelpad=5,
@@ -107,20 +160,19 @@ class Plotters():
                          pad=10,
                          length=9,
                          width=1.0,
-                         labelsize='x-large')
+                         labelsize='large')
         axs0.tick_params(which='minor',
                          direction='out',
                          pad=10,
                          length=5,
                          width=1.0,
-                         labelsize='x-large')
+                         labelsize='large')
 
         for axis in ['top', 'bottom', 'left', 'right']:
             axs0.spines[axis].set_linewidth(1.0)
 
         #Additional formatting
         # axs2.set_autoscale_on
-        axs0.set_ylim(0, )
 
         plt.rcParams['mathtext.fontset'] = 'cm'
         plt.rcParams["font.family"] = "serif"
@@ -137,8 +189,10 @@ class Plotters():
         plt.tight_layout()
         # ax2.legend(frameon = False, loc=1, fontsize = 'medium')
         #plt.legend(frameon = False)
-        #plt.savefig(f'../../reports/figures/Explore{fig_name}.pdf', bbox_inches = 'tight')
-        #plt.savefig(f'../../reports/figures/Explore{fig_name}.png', transparent=True, bbox_inches = 'tight')
+        plt.savefig(f'reports/{figname}.pdf', bbox_inches='tight')
+        plt.savefig(f'reports/{figname}.png',
+                    transparent=True,
+                    bbox_inches='tight')
 
         plt.show()
 
@@ -238,13 +292,13 @@ class Plotters():
                          pad=10,
                          length=9,
                          width=1.0,
-                         labelsize='x-large')
+                         labelsize='large')
         axs0.tick_params(which='minor',
                          direction='out',
                          pad=10,
                          length=5,
                          width=1.0,
-                         labelsize='x-large')
+                         labelsize='large')
 
         for axis in ['top', 'bottom', 'left', 'right']:
             axs0.spines[axis].set_linewidth(1.0)
@@ -268,8 +322,11 @@ class Plotters():
         plt.tight_layout()
         # ax2.legend(frameon = False, loc=1, fontsize = 'medium')
         #plt.legend(frameon = False)
-        #plt.savefig(f'../../reports/figures/Explore{fig_name}.pdf', bbox_inches = 'tight')
-        #plt.savefig(f'../../reports/figures/Explore{fig_name}.png', transparent=True, bbox_inches = 'tight')
+        figname = 'Fig2'
+        plt.savefig(f'reports/{figname}.pdf', bbox_inches='tight')
+        plt.savefig(f'reports/{figname}.png',
+                    transparent=True,
+                    bbox_inches='tight')
 
         plt.show()
 
