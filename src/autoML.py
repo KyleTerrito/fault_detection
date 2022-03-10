@@ -64,7 +64,7 @@ class genTuner(ElementwiseProblem):
         #add hyperparameter for kNN
         self.n_var += 1
         self.xl.extend([1])
-        self.xu.extend([floor(sqrt(len(train_data)))])
+        self.xu.extend([min(floor(sqrt(len(train_data))), 15)])
 
         #print(self.n_var)
 
@@ -96,7 +96,7 @@ class genTuner(ElementwiseProblem):
             self.dr_index = 3
             self.n_var = 3
             self.xl = [2, 0.1, 2]
-            self.xu = [25, 0.99, 5]
+            self.xu = [10, 0.99, 5]
 
         else:
             pass
@@ -185,6 +185,9 @@ class genTuner(ElementwiseProblem):
         '''
         try:
             reduced_test_data = dr_model.transform(self.test_data)
+        except RecursionError:
+            out["F"] = [0]
+            return
         except:
             reduced_test_data = self.test_data
 

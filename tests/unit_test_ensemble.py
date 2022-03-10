@@ -2,6 +2,7 @@ from copyreg import pickle
 from src.autoML import Solvers
 from src.dataPreprocessing import DataPreprocessing
 from src.plotters import Plotters
+from src.autoML import Metrics
 import numpy as np
 import pandas as pd
 from tabulate import tabulate
@@ -22,9 +23,13 @@ def test():
 
     preprocessor = DataPreprocessing()
 
-    X_train, X_test, y_train, y_test = preprocessor.load_data()
+    X_train, X_test, y_train, y_test = preprocessor.load_data(path = 'data/processed/TEP_0_1_2_3_4_5.xlsx')
 
-    dr_methods = ['NO DR', 'PCA', 'UMAP']
+    dr_methods = [
+        #'NO DR',
+        #'PCA',
+        'UMAP'
+        ]
     cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
     ensembles = []
@@ -100,6 +105,22 @@ def test():
     plotter = Plotters()
 
     plotter.plot_performance(res_dict, hyperparameters_list)
+
+    res_dict_test = pickle.load(
+        open('tests/ensemble_test_results/res_dict.pkl', 'rb'))
+
+    metrics = Metrics()
+
+    rc_error, sil_scores = metrics.get_metrics(res_dict=res_dict_test,
+                                               X_train=X_train)
+
+    plotter.plot_metrics(res_dict=res_dict_test,
+                         reconstruction_errors=rc_error,
+                         sil_scores=None)
+
+    plotter.plot_metrics(res_dict=res_dict_test,
+                         reconstruction_errors=None,
+                         sil_scores=sil_scores)
     '''
     End - Plot results---------------------------------------------
     '''
