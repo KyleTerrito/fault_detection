@@ -30,6 +30,7 @@ import sklearn
 from math import sqrt, floor
 from tabulate import tabulate
 from sklearn import preprocessing
+import pickle
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -49,6 +50,10 @@ class MyDisplay(Display):
 
 class genTuner(ElementwiseProblem):
     def __init__(self, train_data, test_data, true_labels, methods):
+
+        self.n_var = 0
+        self.xl = []
+        self.xu = []
 
         self.dr_method = methods[0]
         self.cl_method = methods[1]
@@ -87,11 +92,14 @@ class genTuner(ElementwiseProblem):
             self.xl = [1]
             self.xu = [min(len(train_data[:, 0]), len(train_data[0, :]))]
 
-        if 'UMAP' in methods:
+        elif 'UMAP' in methods:
             self.dr_index = 3
             self.n_var = 3
             self.xl = [2, 0.1, 2]
             self.xu = [25, 0.99, 5]
+
+        else:
+            pass
 
     def setCLhyper(self, methods, train_data):
 
@@ -103,14 +111,14 @@ class genTuner(ElementwiseProblem):
 
             self.xu.extend([min(len(train_data[:, 0]), len(train_data[0, :]))])
 
-        if 'HDBSCAN' in methods:
+        elif 'HDBSCAN' in methods:
             self.cl_index = -3
             self.n_var += 3
 
             self.xl.extend([2, 1, 0.1])
             self.xu.extend([100, 100, 0.99])
 
-        if 'H' not in methods and 'DBSCAN' in methods:
+        elif 'H' not in methods and 'DBSCAN' in methods:
             self.cl_index = -2
             self.n_var += 2
 
@@ -118,15 +126,25 @@ class genTuner(ElementwiseProblem):
 
             self.xu.extend([100, 50])
 
+        else:
+            print('Please select at least on clustering method')
+            quit()
+
     def _evaluate(self, x, out, *args, **kwargs):
 
         #DR
 
         dr = DR()
-        dr_model, dr_data = dr.performGEN(self.dr_method, self.train_data,
-                                          x[:self.cl_index])
+        try:
 
-        rc_data = dr.reconstructGEN(self.dr_method, dr_model, dr_data)
+            dr_model, dr_data = dr.performGEN(self.dr_method, self.train_data,
+                                              x[:self.cl_index])
+
+            rc_data = dr.reconstructGEN(self.dr_method, dr_model, dr_data)
+
+        except:
+            dr_data = self.train_data
+            rc_data = self.train_data
 
         mse = sklearn.metrics.mean_squared_error(self.train_data, rc_data)
 
@@ -165,8 +183,10 @@ class genTuner(ElementwiseProblem):
         '''
         Test kNN model against ground truth labels
         '''
-
-        reduced_test_data = dr_model.transform(self.test_data)
+        try:
+            reduced_test_data = dr_model.transform(self.test_data)
+        except:
+            reduced_test_data = self.test_data
 
         real_y_test_predicted = fd.predict(knn_model=knn_model,
                                            test_data=reduced_test_data)
@@ -365,24 +385,30 @@ class Solvers(ElementwiseProblem):
             self.mask_names.append('n_comp')
             self.mask.append('int')
 
-        if 'UMAP' in methods:
+        elif 'UMAP' in methods:
             self.mask_names.extend(['n_neighbors', 'min_dist', 'n_components'])
             self.mask.extend(['int', 'real', 'int'])
+
+        else:
+            pass
 
     def setCLmethodmask(self, methods):
         if 'KMEANS' in methods:
             self.mask_names.extend(['n_clusters'])
             self.mask.extend(['int'])
 
-        if 'HDBSCAN' in methods:
+        elif 'HDBSCAN' in methods:
             self.mask_names.extend([
                 'min_cluster_size', 'min_samples', 'cluster_selection_epsilon'
             ])
             self.mask.extend(['int', 'int', 'real'])
 
-        if 'H' not in methods and 'DBSCAN' in methods:
+        elif 'H' not in methods and 'DBSCAN' in methods:
             self.mask_names.extend(['eps', 'min_samples'])
             self.mask.extend(['real', 'int'])
+
+        else:
+            pass
 
     def genSolver(self, train_data, test_data, true_labels, methods):
         self.dr_method = methods[0]
@@ -429,7 +455,7 @@ class Solvers(ElementwiseProblem):
         #                   mutation=mutation,
         #                   eliminate_duplicates=True)
 
-        algorithm = GA(pop_size=5,
+        algorithm = GA(pop_size=2,
                        n_offsprings=2,
                        sampling=sampling,
                        crossover=crossover,
@@ -443,7 +469,7 @@ class Solvers(ElementwiseProblem):
                        save_history=True,
                        verbose=True)
 
-        return res
+        return res, self.mask_names
 
     def pcaSolver(self, data):
 
@@ -567,3 +593,82 @@ class Solvers(ElementwiseProblem):
                        verbose=True)
 
         return res
+
+
+class Metrics():
+    def __init__(self):
+        pass
+
+    def get_metrics(self, res_dict, X_train):
+
+        # preprocessor = DataPreprocessing()
+
+        # X_train, X_test, y_train, y_test = preprocessor.load_data()
+
+        # res_dict = pickle.load(
+        #     open('tests/ensemble_test_results/res_dict.pkl', 'rb'))
+
+        mse_values = []
+        sil_values = []
+        dr = DR()
+        cl = Clustering()
+
+        for key, values in res_dict.items():
+
+            methods = [key[0]]
+
+            h_values = [i for i in values[0]]
+
+            # compute reconstruction error
+            for i in range(len(methods)):
+
+                if methods[i] == 'NO DR':
+                    mse = 0
+                    dr_data = X_train
+
+                    cl_train_labels = cl.performGEN(key[1], dr_data,
+                                                    h_values[:-1])
+
+                    if len(set(cl_train_labels)) > 2:
+                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                    else:
+                        sil_score = -1
+
+                elif methods[i] == 'PCA':
+
+                    dr_model, dr_data = dr.performGEN(methods[i], X_train,
+                                                      h_values[:1])
+
+                    rc_data = dr.reconstructGEN(methods[i], dr_model, dr_data)
+
+                    mse = sklearn.metrics.mean_squared_error(X_train, rc_data)
+
+                    cl_train_labels = cl.performGEN(key[1], dr_data,
+                                                    h_values[0:-1])
+
+                    if len(set(cl_train_labels)) > 2:
+                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                    else:
+                        sil_score = -1
+
+                elif methods[i] == 'UMAP':
+
+                    dr_model, dr_data = dr.performGEN(methods[i], X_train,
+                                                      h_values[:3])
+
+                    rc_data = dr.reconstructGEN(methods[i], dr_model, dr_data)
+
+                    mse = sklearn.metrics.mean_squared_error(X_train, rc_data)
+
+                    cl_train_labels = cl.performGEN(key[1], dr_data,
+                                                    h_values[2:-1])
+
+                    if len(set(cl_train_labels)) > 2:
+                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                    else:
+                        sil_score = -1
+
+                mse_values.append(mse)
+                sil_values.append(sil_score)
+
+        return mse_values, sil_values
