@@ -1,9 +1,12 @@
+from copyreg import pickle
 from src.autoML import Solvers
 from src.dataPreprocessing import DataPreprocessing
+from src.plotters import Plotters
 import numpy as np
 import pandas as pd
 from tabulate import tabulate
 from datetime import datetime, date
+import pickle
 
 
 def test():
@@ -13,22 +16,21 @@ def test():
     Stores resutls in /tests/results.txt
     
     '''
+    '''
+    Start - Compute accuracies------------------------------------
+    '''
 
     preprocessor = DataPreprocessing()
 
     X_train, X_test, y_train, y_test = preprocessor.load_data()
 
-    dr_methods = ['PCA']  #, 'UMAP']
+    dr_methods = ['NO DR', 'PCA', 'UMAP']
     cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
     ensembles = []
+    hyperparameters_list = []
     solutions_list = []
     accuracies_list = []
-
-    today = date.today()
-    d = today.strftime("%b-%d-%Y")
-    f = open(f'tests/ensemble_test_results/result_unit_test_ensemble{d}.txt',
-             'w')
 
     for dr_method in dr_methods:
         for cl_method in cl_methods:
@@ -39,24 +41,42 @@ def test():
 
             methods = [dr_method, cl_method]
             solver = Solvers()
-            res = solver.genSolver(train_data=np.asarray(X_train),
-                                   test_data=X_test,
-                                   true_labels=y_test,
-                                   methods=methods)
+            res, hyperparameters = solver.genSolver(
+                train_data=np.asarray(X_train),
+                test_data=X_test,
+                true_labels=y_test,
+                methods=methods)
 
             ensembles.append((dr_method, cl_method))
+            hyperparameters_list.append(hyperparameters)
             solutions_list.append((res.X))
             accuracies_list.append((-1 * res.F))
-    ''' print results -------------------------- -----------------------'''
+
+    h_file = open('tests/ensemble_test_results/h_list.pkl', 'wb')
+    pickle.dump(hyperparameters_list, h_file)
+    '''
+    End - Compute accuracies---------------------------------------
+    '''
+    '''
+    Start - Print results -------------------------- --------------
+    '''
 
     res_dict = {
         z[0]: list(z[1:])
         for z in zip(ensembles, solutions_list, accuracies_list)
     }
 
+    res_file = open('tests/ensemble_test_results/res_dict.pkl', 'wb')
+    pickle.dump(res_dict, res_file)
+
     table = []
     for key, value in res_dict.items():
         table.extend([[key, value[0], value[1]]])
+
+    today = date.today()
+    d = today.strftime("%b-%d-%Y")
+    f = open(f'tests/ensemble_test_results/result_unit_test_ensemble{d}.txt',
+             'w')
 
     now = datetime.now()
 
@@ -71,5 +91,16 @@ def test():
         tabulate(table,
                  headers=['ensemble', 'solutions', 'accuracies'],
                  tablefmt="rst"))
-    '''---------------------------------------------------------------'''
+    '''
+    End - Print results ---------------------------------------------
+    '''
+    '''
+    Start - Plot results---------------------------------------------
+    '''
+    plotter = Plotters()
+
+    plotter.plot_performance(res_dict, hyperparameters_list)
+    '''
+    End - Plot results---------------------------------------------
+    '''
     return None
