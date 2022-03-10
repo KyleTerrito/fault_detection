@@ -66,7 +66,6 @@ class Plotters():
             for key, value in res_dict.items():
 
                 x = k_dict[' '.join(key)]
-                print(x)
 
                 if 'UMAP' in x[0]:
                     if reconstruction_errors[i] > 0:
