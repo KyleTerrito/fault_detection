@@ -221,7 +221,7 @@ class FaultDetection():
 
         ground_truth_set = list(set(true_labels))
         predicted_labels_set = list(set(predicted_labels))
-        aligned_labels_set = set(predicted_labels_set)
+        aligned_labels_set = set(true_labels)
         aligned_labels = np.empty_like(predicted_labels)
 
         for label in range(len(predicted_labels_set)):
