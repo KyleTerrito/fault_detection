@@ -15,17 +15,25 @@ def test():
 
     metrics = Metrics()
 
-    rc_error, sil_scores = metrics.get_metrics(res_dict=res_dict,
-                                               X_train=X_train)
+    rc_error, sil_scores, n_clusters = metrics.get_metrics(res_dict=res_dict,
+                                                           X_train=X_train)
 
+    #print(n_clusters)
     plotter = Plotters()
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=rc_error,
-                         sil_scores=None)
+                         sil_scores=None,
+                         n_clusters=None)
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=None,
-                         sil_scores=sil_scores)
+                         sil_scores=sil_scores,
+                         n_clusters=None)
+
+    plotter.plot_metrics(res_dict=res_dict,
+                         reconstruction_errors=None,
+                         sil_scores=None,
+                         n_clusters=n_clusters)
 
     return None

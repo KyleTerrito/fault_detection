@@ -25,7 +25,8 @@ class Plotters():
     def __init__(self):
         pass
 
-    def plot_metrics(self, res_dict, reconstruction_errors, sil_scores):
+    def plot_metrics(self, res_dict, reconstruction_errors, sil_scores,
+                     n_clusters):
 
         key_names_all = [
             'NO DR KMEANS',
@@ -124,7 +125,7 @@ class Plotters():
             axs1.set_ylim(0, )
 
         if sil_scores is not None:
-            figname = 'Fig4'
+            figname = 'Fig5'
             fig = plt.figure(figsize=(12, 5))
             axs0 = fig.add_subplot(1, 1, 1)
             i = 0
@@ -136,6 +137,26 @@ class Plotters():
                 i += 1
 
             axs0.set_ylabel(r'$\rm Silhouette\ score$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs0.plot([-1, 9], [0, 0], color='k', linewidth=1.0)
+            axs0.set_xlim(-1, 9)
+
+        if n_clusters is not None:
+            figname = 'Fig4'
+            fig = plt.figure(figsize=(12, 5))
+            axs0 = fig.add_subplot(1, 1, 1)
+            i = 0
+
+            for key, value in res_dict.items():
+                x = k_dict[' '.join(key)]
+
+                axs0.bar(x, n_clusters[i], align='center', width=0.3)
+                i += 1
+
+            axs0.set_ylabel(r'$\rm Number\ of\ clusters$',
                             labelpad=5,
                             fontsize='x-large',
                             fontname='Times New Roman')

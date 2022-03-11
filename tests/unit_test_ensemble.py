@@ -23,13 +23,10 @@ def test():
 
     preprocessor = DataPreprocessing()
 
-    X_train, X_test, y_train, y_test = preprocessor.load_data(path = 'data/processed/TEP_0_1_2_3_4_5.xlsx')
+    X_train, X_test, y_train, y_test = preprocessor.load_data(
+        path='data/processed/TEP0-2_labeled.xlsx')
 
-    dr_methods = [
-        #'NO DR',
-        #'PCA',
-        'UMAP'
-        ]
+    dr_methods = ['NO DR', 'PCA', 'UMAP']
     cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
     ensembles = []
@@ -111,16 +108,23 @@ def test():
 
     metrics = Metrics()
 
-    rc_error, sil_scores = metrics.get_metrics(res_dict=res_dict_test,
-                                               X_train=X_train)
+    rc_error, sil_scores, n_clusters = metrics.get_metrics(
+        res_dict=res_dict_test, X_train=X_train)
 
-    plotter.plot_metrics(res_dict=res_dict_test,
+    plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=rc_error,
-                         sil_scores=None)
+                         sil_scores=None,
+                         n_clusters=None)
 
-    plotter.plot_metrics(res_dict=res_dict_test,
+    plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=None,
-                         sil_scores=sil_scores)
+                         sil_scores=sil_scores,
+                         n_clusters=None)
+
+    plotter.plot_metrics(res_dict=res_dict,
+                         reconstruction_errors=None,
+                         sil_scores=None,
+                         n_clusters=n_clusters)
     '''
     End - Plot results---------------------------------------------
     '''
