@@ -16,6 +16,7 @@ import numpy as np
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.algorithms.soo.nonconvex.ga import GA
 from pymoo.core.problem import ElementwiseProblem
+from pymoo.util.termination.default import SingleObjectiveDefaultTermination
 from pymoo.factory import (get_crossover, get_mutation, get_sampling,
                            get_termination)
 from pymoo.operators.mixed_variable_operator import (MixedVariableCrossover,
@@ -140,13 +141,13 @@ class genTuner(ElementwiseProblem):
             dr_model, dr_data = dr.performGEN(self.dr_method, self.train_data,
                                               x[:self.cl_index])
 
-            rc_data = dr.reconstructGEN(self.dr_method, dr_model, dr_data)
+            # rc_data = dr.reconstructGEN(self.dr_method, dr_model, dr_data)
 
         except:
             dr_data = self.train_data
-            rc_data = self.train_data
+            # rc_data = self.train_data
 
-        mse = sklearn.metrics.mean_squared_error(self.train_data, rc_data)
+        # mse = sklearn.metrics.mean_squared_error(self.train_data, rc_data)
 
         #Clustering
 
@@ -155,10 +156,10 @@ class genTuner(ElementwiseProblem):
         cl_train_labels = cl.performGEN(self.cl_method, dr_data,
                                         x[(self.cl_index - 1):-1])
 
-        if len(set(cl_train_labels)) > 2:
-            sil_score = cl.silmetric(dr_data, cl_train_labels)
-        else:
-            sil_score = -1
+        # if len(set(cl_train_labels)) > 2:
+        #     sil_score = cl.silmetric(dr_data, cl_train_labels)
+        # else:
+        #     sil_score = -1
 
         #Fault detection
 
@@ -178,8 +179,8 @@ class genTuner(ElementwiseProblem):
         knn_y_test_predicted = fd.predict(knn_model=knn_model,
                                           test_data=cl_X_test)
 
-        kNN_accuracy = fd.accuracy(true_labels=cl_y_test,
-                                   predicted_labels=knn_y_test_predicted)
+        # kNN_accuracy = fd.accuracy(true_labels=cl_y_test,
+        #                            predicted_labels=knn_y_test_predicted)
         '''
         Test kNN model against ground truth labels
         '''
@@ -458,16 +459,22 @@ class Solvers(ElementwiseProblem):
         #                   mutation=mutation,
         #                   eliminate_duplicates=True)
 
-        algorithm = GA(pop_size=2,
-                       n_offsprings=2,
+        algorithm = GA(pop_size=10,
+                       n_offsprings=5,
                        sampling=sampling,
                        crossover=crossover,
                        mutation=mutation,
                        eliminate_duplicates=True)
-
+        termination = SingleObjectiveDefaultTermination(x_tol=1e-8,
+                                                        cv_tol=1e-6,
+                                                        f_tol=1e-6,
+                                                        nth_gen=5,
+                                                        n_last=20,
+                                                        n_max_gen=1000,
+                                                        n_max_evals=100000)
         res = minimize(problem,
                        algorithm,
-                       termination=get_termination("n_gen", 10),
+                       termination=termination,
                        seed=1,
                        save_history=True,
                        verbose=True)
@@ -613,6 +620,7 @@ class Metrics():
 
         mse_values = []
         sil_values = []
+        n_clusters_values = []
         dr = DR()
         cl = Clustering()
 
@@ -673,5 +681,6 @@ class Metrics():
 
                 mse_values.append(mse)
                 sil_values.append(sil_score)
+                n_clusters_values.append(len(set(cl_train_labels)))
 
-        return mse_values, sil_values
+        return mse_values, sil_values, n_clusters_values
