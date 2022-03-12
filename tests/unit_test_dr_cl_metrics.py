@@ -8,8 +8,10 @@ def test():
 
     preprocessor = DataPreprocessing()
 
-    X_train, X_test, y_train, y_test = preprocessor.load_data()
+    #X_train, X_test, y_train, y_test = preprocessor.load_data()
 
+    X_train = pickle.load(
+        open('tests/ensemble_test_results/X_train_file.pkl', 'rb'))
     res_dict = pickle.load(
         open('tests/ensemble_test_results/res_dict.pkl', 'rb'))
 
