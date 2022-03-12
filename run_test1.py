@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_ensemble import test
+from tests.unit_test_dr_cl_metrics import test
 
 test()
