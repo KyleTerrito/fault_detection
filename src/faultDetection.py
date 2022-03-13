@@ -25,9 +25,10 @@ class DR():
     Contains methods for dimensionality reduction and data reconstruction
 
     -All DR methods must receive (data, hyperparameters) as inputs and return (model, reduced data)
-    
+
     -All reconstruction methods must receive (model, dr_data) and return (reconstructed data)
     '''
+
     def __init__(self):
         pass
 
@@ -87,9 +88,10 @@ class Clustering():
     -Metrics should be small is better
 
     -All clustering methods must receive (data, hyperparameters) as inputs and return (labels)
-    
+
     -All reconstruction methods must receive (data, labels) and return (metric score)
     '''
+
     def __init__(self):
         pass
 
@@ -105,7 +107,7 @@ class Clustering():
 
         scores = []
 
-        #Divide the dataset into clusters
+        # Divide the dataset into clusters
         cluster_list = []
         for i in range(len(labels)):
             cluster_i = []
@@ -128,7 +130,7 @@ class Clustering():
             n_edges = np.count_nonzero(Tcsr.toarray())
             average_dist = np.sum(Tcsr) / n_edges
 
-            #print(average_dist)
+            # print(average_dist)
             # print(n_edges)
 
             score = average_dist  # / n_edges
@@ -137,9 +139,9 @@ class Clustering():
             scores.append(score)
 
         total_score = np.sum(np.asarray(scores)) / len(labels)
-        #print(total_score)
+        # print(total_score)
 
-        #print(total_score)
+        # print(total_score)
 
         return total_score
 
@@ -161,7 +163,7 @@ class Clustering():
         cl_model = DBSCAN(eps=hyperparameters[0],
                           min_samples=hyperparameters[1])
 
-        labels = cl_model.fit_predict(data)  #.labels_
+        labels = cl_model.fit_predict(data)  # .labels_
 
         return labels
 
@@ -193,9 +195,10 @@ class FaultDetection():
 
     -All classification methods must receive (data, labels, hyperparameters) as inputs
                                  and return (classification model)
-    
+
     -All prediction methods must receive (classification model, test data) and return (predicted labels)
     '''
+
     def __init__(self):
         pass
 
@@ -225,20 +228,20 @@ class FaultDetection():
         aligned_labels = np.empty_like(predicted_labels)
 
         for label in range(len(predicted_labels_set)):
-            #Takes one predicted cluster at a time
+            # Takes one predicted cluster at a time
             this_label = predicted_labels_set[label]
             this_cluster_mask = predicted_labels == predicted_labels_set[label]
             this_pred_cluster = predicted_labels[this_cluster_mask]
             this_true_cluster = true_labels[this_cluster_mask]
 
-            #Check to see if all members of this predicted cluster share the same ground truth label
+            # Check to see if all members of this predicted cluster share the same ground truth label
             if not np.all(this_true_cluster == this_true_cluster[0]):
                 unique, counts = np.unique(this_true_cluster,
                                            return_counts=True)
                 majority_share = max(counts) / sum(counts)
 
                 if majority_share > majority_threshold_percentage:
-                    #If this cluster is split, but one class holds an 80% majority, let's assign them all to that class
+                    # If this cluster is split, but one class holds an 80% majority, let's assign them all to that class
                     majority_name = unique[np.where(counts == max(counts))][0]
                     aligned_labels[this_cluster_mask] = majority_name
                     if print_reassignments:
@@ -246,7 +249,7 @@ class FaultDetection():
                             f"Assigned cluster with {majority_share*100}% majority to cluster: {majority_name}"
                         )
                 else:
-                    #If the split is closer to 50-50, then let's separate this predicted cluster as a brand new cluster
+                    # If the split is closer to 50-50, then let's separate this predicted cluster as a brand new cluster
                     new_cluster_name = max(aligned_labels_set) + 1
                     aligned_labels_set.add(new_cluster_name)
                     aligned_labels[this_cluster_mask] = new_cluster_name
@@ -255,13 +258,26 @@ class FaultDetection():
                             f"Assigned predicted cluster:{this_label} to new cluster:{new_cluster_name}"
                         )
             else:
-                #This cluster is consistent, so we can assign it to the cluster it matches
+                # This cluster is consistent, so we can assign it to the cluster it matches
                 aligned_labels[this_cluster_mask] = this_true_cluster[0]
                 if print_reassignments:
                     print(
                         f"Assigned consistent cluster: {this_true_cluster[0]}")
+        '''
+        For noise clusters the following is true:
+            1. All labels are the same
+            2. None of the labels corresponds to a ground truth label
+            3. Since 1 and a are true, a new cluster is created
+            4. If only noise cluster alignLabels() ends here.
+        
+        Idea: check if how many gtl were assigned, then create clusters with the remaining.
+        '''
 
-        return aligned_labels
+        for el in aligned_labels_set:
+            if el not in aligned_labels_set:
+                aligned_labels_set.add(el)
+
+        return aligned_labels, len(aligned_labels_set)
 
     def accuracy(self, true_labels, predicted_labels):
 

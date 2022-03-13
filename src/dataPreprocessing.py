@@ -19,7 +19,7 @@ class DataPreprocessing():
         pass
 
     def load_data(self, path='data/processed/TEP0-2_labeled.xlsx'):
-        #Load data
+        # Load data
         data = pd.read_excel(path)
         print(data.head(10))
 
@@ -35,13 +35,17 @@ class DataPreprocessing():
 
         return X_train, X_test, y_train, y_test
 
-        #scaling
+    # scaling
+    def scale(self, data):
         scaler = StandardScaler()
         data = scaler.fit_transform(data)
 
-    def train_test_split(self, data, labels, test_size):
+    '''
+    removed user define function as is does the same as sklearn's import
+    '''
+    # def train_test_split(self, data, labels, test_size):
 
-        X_train, X_test, y_train, y_test = train_test_split(
-            data, labels, test_size=test_size)
+    #     X_train, X_test, y_train, y_test = train_test_split(
+    #         data, labels, test_size=test_size)
 
-        return X_train, X_test, y_train, y_test
+    #     return X_train, X_test, y_train, y_test

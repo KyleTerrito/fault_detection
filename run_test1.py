@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_dr_cl_metrics import test
+from tests.unit_test_autoKNN import test
 
 test()
