@@ -11,12 +11,16 @@ define the optimization problem. See pcaTuner() for example.
 -Also a new function in Solvers() is needed.
 
 """
+import pickle
+import warnings
+from math import floor, sqrt
 from telnetlib import EL
+
 import numpy as np
+import sklearn
 from pymoo.algorithms.moo.nsga2 import NSGA2
 from pymoo.algorithms.soo.nonconvex.ga import GA
 from pymoo.core.problem import ElementwiseProblem
-from pymoo.util.termination.default import SingleObjectiveDefaultTermination
 from pymoo.factory import (get_crossover, get_mutation, get_sampling,
                            get_termination)
 from pymoo.operators.mixed_variable_operator import (MixedVariableCrossover,
@@ -24,16 +28,14 @@ from pymoo.operators.mixed_variable_operator import (MixedVariableCrossover,
                                                      MixedVariableSampling)
 from pymoo.optimize import minimize
 from pymoo.util.display import Display
-
-from src.faultDetection import DR, Clustering, FaultDetection
-from src.dataPreprocessing import DataPreprocessing
-import sklearn
-from math import sqrt, floor
-from tabulate import tabulate
+from pymoo.util.termination.default import SingleObjectiveDefaultTermination
 from sklearn import preprocessing
-import pickle
+from sklearn.model_selection import train_test_split
+from tabulate import tabulate
 
-import warnings
+from src.dataPreprocessing import DataPreprocessing
+from src.faultDetection import DR, Clustering, FaultDetection
+
 warnings.filterwarnings("ignore")
 """-------------------------------------------------------------------------------"""
 
@@ -46,7 +48,7 @@ class MyDisplay(Display):
 
 
 """------------------Optimization problems----------------------------------------"""
-#TODO: update individual dr/cl methods for new data naming convention
+# TODO: update individual dr/cl methods for new data naming convention
 
 
 class genTuner(ElementwiseProblem):
@@ -62,12 +64,12 @@ class genTuner(ElementwiseProblem):
         self.setDRhyper(methods=self.dr_method, train_data=train_data)
         self.setCLhyper(methods=self.cl_method, train_data=train_data)
 
-        #add hyperparameter for kNN
+        # add hyperparameter for kNN
         self.n_var += 1
         self.xl.extend([1])
         self.xu.extend([min(floor(sqrt(len(train_data))), 15)])
 
-        #print(self.n_var)
+        # print(self.n_var)
 
         # print(self.xl)
         # print(self.xu)
@@ -133,7 +135,7 @@ class genTuner(ElementwiseProblem):
 
     def _evaluate(self, x, out, *args, **kwargs):
 
-        #DR
+        # DR
 
         dr = DR()
         try:
@@ -149,7 +151,7 @@ class genTuner(ElementwiseProblem):
 
         # mse = sklearn.metrics.mean_squared_error(self.train_data, rc_data)
 
-        #Clustering
+        # Clustering
 
         cl = Clustering()
 
@@ -161,12 +163,12 @@ class genTuner(ElementwiseProblem):
         # else:
         #     sil_score = -1
 
-        #Fault detection
+        # Fault detection
 
         fd = FaultDetection()
-        dp = DataPreprocessing()
+        # dp = DataPreprocessing()
 
-        cl_X_train, cl_X_test, cl_y_train, cl_y_test = dp.train_test_split(
+        cl_X_train, cl_X_test, cl_y_train, cl_y_test = train_test_split(
             dr_data, cl_train_labels, test_size=0.2)
 
         knn_model = fd.trainKNN(train_data=cl_X_train,
@@ -200,7 +202,9 @@ class genTuner(ElementwiseProblem):
             real_y_test_predicted,
             majority_threshold_percentage=0.8)
 
-        #cl_y_test are the labels from CL, self.true_labels are the ground truth labels
+        self.n_labels = len(set(aligned_predicted_labels))
+
+        # cl_y_test are the labels from CL, self.true_labels are the ground truth labels
         confusion, accuracy = fd.accuracy(
             true_labels=self.true_labels,
             predicted_labels=aligned_predicted_labels)
@@ -216,6 +220,7 @@ class pcaTuner(ElementwiseProblem):
     xl and xu are lists containing the lower/upper limits allowed for each hyperparameter
         These are based on either intuition or some recommendation for the method.
     '''
+
     def __init__(self, data):
         super().__init__(n_var=1,
                          n_obj=1,
@@ -230,18 +235,18 @@ class pcaTuner(ElementwiseProblem):
         x is the vector of hyperparameters
 
         '''
-        #Initialize a DR object
+        # Initialize a DR object
         dr = DR()
 
-        #Use the corresponing DR method
+        # Use the corresponing DR method
         model, dr_data = dr.performPCA(self.data, x)
 
         rc_data = dr.reconstructPCA(model, dr_data)
 
-        #Compute performance metric
+        # Compute performance metric
         mse = sklearn.metrics.mean_squared_error(self.data, rc_data)
 
-        #Return value of objective function
+        # Return value of objective function
         out["F"] = [mse]
 
 
@@ -355,6 +360,7 @@ class Solvers(ElementwiseProblem):
     Contains methods to auto tune fault detection methods
 
     '''
+
     def __init__(self):
         super(ElementwiseProblem, self).__init__()
 
@@ -414,7 +420,7 @@ class Solvers(ElementwiseProblem):
         else:
             pass
 
-    def genSolver(self, train_data, test_data, true_labels, methods):
+    def genSolver(self, train_data, test_data, true_labels, methods, termination):
         self.dr_method = methods[0]
         self.cl_method = methods[1]
         self.mask = []
@@ -429,7 +435,7 @@ class Solvers(ElementwiseProblem):
         sampling, crossover, mutation = self.masker(mask=self.mask)
 
         problem = genTuner(train_data, test_data, true_labels,
-                           methods)  #use the corresponding problem
+                           methods)  # use the corresponding problem
 
         # dv_dict = dict(
         #     zip(self.mask_names, [self.mask, problem.xl, problem.xu]))
@@ -459,19 +465,25 @@ class Solvers(ElementwiseProblem):
         #                   mutation=mutation,
         #                   eliminate_duplicates=True)
 
-        algorithm = GA(pop_size=10,
-                       n_offsprings=5,
+        algorithm = GA(pop_size=2,
+                       n_offsprings=2,
                        sampling=sampling,
                        crossover=crossover,
                        mutation=mutation,
                        eliminate_duplicates=True)
-        termination = SingleObjectiveDefaultTermination(x_tol=1e-8,
-                                                        cv_tol=1e-6,
-                                                        f_tol=1e-6,
-                                                        nth_gen=5,
-                                                        n_last=20,
-                                                        n_max_gen=1000,
-                                                        n_max_evals=100000)
+
+        if termination == 'test':
+            termination = get_termination("n_gen", 2)
+
+        elif termination == 'run':
+            termination = SingleObjectiveDefaultTermination(x_tol=1e-8,
+                                                            cv_tol=1e-6,
+                                                            f_tol=1e-6,
+                                                            nth_gen=5,
+                                                            n_last=20,
+                                                            n_max_gen=1000,
+                                                            n_max_evals=100000)
+
         res = minimize(problem,
                        algorithm,
                        termination=termination,
@@ -479,7 +491,7 @@ class Solvers(ElementwiseProblem):
                        save_history=True,
                        verbose=True)
 
-        return res, self.mask_names
+        return res, self.mask_names, problem.n_labels
 
     def pcaSolver(self, data):
 
@@ -487,7 +499,7 @@ class Solvers(ElementwiseProblem):
 
         sampling, crossover, mutation = self.masker(mask=mask)
 
-        problem = pcaTuner(data)  #use the corresponding problem
+        problem = pcaTuner(data)  # use the corresponding problem
 
         algorithm = NSGA2(pop_size=300,
                           n_offsprings=4,
@@ -630,7 +642,6 @@ class Metrics():
 
             h_values = [i for i in values[0]]
 
-            # compute reconstruction error
             for i in range(len(methods)):
 
                 if methods[i] == 'NO DR':
@@ -679,6 +690,7 @@ class Metrics():
                     else:
                         sil_score = -1
 
+                print(f'Labels in metrics: {set(cl_train_labels)}')
                 mse_values.append(mse)
                 sil_values.append(sil_score)
                 n_clusters_values.append(len(set(cl_train_labels)))
