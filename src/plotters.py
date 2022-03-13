@@ -15,13 +15,13 @@ from matplotlib.ticker import (AutoLocator, AutoMinorLocator,
 from matplotlib.transforms import Affine2D
 from mpl_toolkits.axes_grid1.inset_locator import (InsetPosition, inset_axes,
                                                    mark_inset)
-from xarray import align
 
 
 class Plotters():
     '''
     Utilities class to handle all plots.
     '''
+
     def __init__(self):
         pass
 
@@ -191,7 +191,7 @@ class Plotters():
         for axis in ['top', 'bottom', 'left', 'right']:
             axs0.spines[axis].set_linewidth(1.0)
 
-        #Additional formatting
+        # Additional formatting
         # axs2.set_autoscale_on
 
         plt.rcParams['mathtext.fontset'] = 'cm'
@@ -323,7 +323,7 @@ class Plotters():
         for axis in ['top', 'bottom', 'left', 'right']:
             axs0.spines[axis].set_linewidth(1.0)
 
-        #Additional formatting
+        # Additional formatting
         # axs2.set_autoscale_on
         axs0.set_ylim(0, 1.8)
 
