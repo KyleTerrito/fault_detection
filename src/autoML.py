@@ -197,12 +197,13 @@ class genTuner(ElementwiseProblem):
         real_y_test_predicted = fd.predict(knn_model=knn_model,
                                            test_data=reduced_test_data)
 
-        aligned_predicted_labels = fd.alignLabels(
+        aligned_predicted_labels, self.n_labels = fd.alignLabels(
             self.true_labels,
             real_y_test_predicted,
-            majority_threshold_percentage=0.8)
+            majority_threshold_percentage=0.8,
+            print_reassignments=False)
 
-        self.n_labels = len(set(aligned_predicted_labels))
+        #self.n_labels = len(set(aligned_predicted_labels))
 
         # cl_y_test are the labels from CL, self.true_labels are the ground truth labels
         confusion, accuracy = fd.accuracy(
@@ -690,7 +691,7 @@ class Metrics():
                     else:
                         sil_score = -1
 
-                print(f'Labels in metrics: {set(cl_train_labels)}')
+                #print(f'Labels in metrics: {set(cl_train_labels)}')
                 mse_values.append(mse)
                 sil_values.append(sil_score)
                 n_clusters_values.append(len(set(cl_train_labels)))

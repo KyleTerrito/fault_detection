@@ -15,22 +15,25 @@ def test():
     Tests the optimized ensembles of DR+CL methods + kNN
     Accuracy corresponds to kNN against CL labels.
     Stores resutls in /tests/results.txt
-    
+
     '''
     '''
     Start - Compute accuracies------------------------------------
     '''
 
+    # Load data
     preprocessor = DataPreprocessing()
 
     X_train, X_test, y_train, y_test = preprocessor.load_data(
         path='data/processed/TEP_Selected_Faults.xlsx')
 
+    # Save data to use later in metrics
     X_train_file = open('tests/ensemble_test_results/X_train_file.pkl', 'wb')
     pickle.dump(X_train, X_train_file)
 
-    dr_methods = ['NO DR', 'PCA']  #, 'UMAP']
-    cl_methods = ['KMEANS', 'DBSCAN']  #, 'HDBSCAN']
+    # Set up methods
+    dr_methods = ['NO DR', 'PCA']  # , 'UMAP']
+    cl_methods = ['KMEANS', 'DBSCAN']  # , 'HDBSCAN']
 
     ensembles = []
     hyperparameters_list = []
