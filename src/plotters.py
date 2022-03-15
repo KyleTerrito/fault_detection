@@ -164,7 +164,6 @@ class Plotters():
             axs0.plot([-1, 9], [0, 0], color='k', linewidth=1.0)
             axs0.set_xlim(-1, 9)
 
-    
         if DBI_scores is not None:
             figname = 'Fig7'
             fig = plt.figure(figsize=(12, 5))
@@ -446,7 +445,7 @@ class Plotters():
 
         #fig = plt.figure(figsize=(20, 10))
 
-        fig, (axs1, axs0) = plt.subplots(2, 1, sharex=True, figsize=(10, 9))
+        fig, (axs1, axs0) = plt.subplots(2, 1, sharex=True, figsize=(11, 9))
 
         # axs0 = fig.add_subplot(1, 1, 1)
         # axs1 = axs0.twinx()
@@ -527,7 +526,7 @@ class Plotters():
             #   arrowprops=dict(arrowstyle="fancy"))
 
             #axs0.annotate(f'{i}:' + txt, (0.05, 40 - m))
-            axs1.annotate(f'{i}:' + txt, (0.03, max(y_pareto_list) + 4 - m))
+            axs1.annotate(f'{i}:' + txt, (0.03, max(y_pareto_list) + 5.5 - m))
             m += 0.65
             #axs0.annotate(txt, ((x_pareto_list[i]), y_pareto_list[i]))
 
@@ -589,8 +588,8 @@ class Plotters():
 
         axs0.set_ylim(0, 40)  # most of the data
         axs1.set_xlim(0, )
-        axs1.set_ylim((max(y_pareto_list) - 5),
-                      (max(y_pareto_list) + 5))  # outliers only
+        axs1.set_ylim((max(y_pareto_list) - 6),
+                      (max(y_pareto_list) + 6))  # outliers only
 
         # hide the spines between ax and ax2
         axs1.spines['bottom'].set_visible(False)
