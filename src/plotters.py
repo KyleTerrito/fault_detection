@@ -17,6 +17,8 @@ from matplotlib.transforms import Affine2D
 from mpl_toolkits.axes_grid1.inset_locator import (InsetPosition, inset_axes,
                                                    mark_inset)
 
+import pickle
+
 
 class Plotters():
     '''
@@ -24,6 +26,89 @@ class Plotters():
     '''
     def __init__(self):
         pass
+
+    def plot_metrics_opt(self, metric):
+        fig = plt.figure(figsize=(6, 5))
+        axs0 = fig.add_subplot(1, 1, 1)
+
+        metrics_dict = {'sil_score': 0, 'ch_score': 1, 'dbi_score': 2}
+        y_label_dict = {
+            'sil_score': r'$\rm Silhouette\ Score$',
+            'ch_score': r'$\rm  Calinski-Harabasz\ Index$',
+            'dbi_score': r'$\rm Davies-Bouldin\ Index$'
+        }
+
+        dr_methods = ['NO DR', 'PCA']  #, 'UMAP']
+        cl_methods = ['KMEANS', 'DBSCAN']  #, 'HDBSCAN']
+
+        for dr_method in dr_methods:
+            for cl_method in cl_methods:
+                metrics = pickle.load(
+                    open(
+                        f'tests/ensemble_test_results/metrics{dr_method}_{cl_method}.pkl',
+                        'rb'))
+
+                metrics_sorted = metrics.transpose().sort_values(
+                    by=[f'{dr_method}_{cl_method}_acc']).to_numpy()
+
+                axs0.scatter(-1 * metrics_sorted[:, -1],
+                             metrics_sorted[:, metrics_dict[metric]],
+                             marker='s',
+                             label=f'{dr_method}-{cl_method}')
+
+        axs0.set_ylabel(y_label_dict[metric],
+                        labelpad=5,
+                        fontsize='x-large',
+                        fontname='Times New Roman')
+
+        axs0.set_xlabel(r'$\rm Accuracy$',
+                        labelpad=5,
+                        fontsize='x-large',
+                        fontname='Times New Roman')
+
+        for tick in axs0.get_xticklabels():
+            tick.set_fontname("Times New Roman")
+        for tick in axs0.get_yticklabels():
+            tick.set_fontname("Times New Roman")
+
+        axs0.yaxis.set_major_locator(AutoLocator())
+        axs0.yaxis.set_minor_locator(AutoMinorLocator())
+        axs0.tick_params(direction='out',
+                         pad=10,
+                         length=9,
+                         width=1.0,
+                         labelsize='large')
+        axs0.tick_params(which='minor',
+                         direction='out',
+                         pad=10,
+                         length=5,
+                         width=1.0,
+                         labelsize='large')
+
+        for axis in ['top', 'bottom', 'left', 'right']:
+            axs0.spines[axis].set_linewidth(1.0)
+
+        plt.rcParams['mathtext.fontset'] = 'cm'
+        plt.rcParams["font.family"] = "serif"
+        plt.rcParams["font.serif"] = ["Times New Roman"
+                                      ] + plt.rcParams["font.serif"]
+        plt.rcParams['font.size'] = 13
+        axs0.legend(
+            frameon=False,
+            loc='best',
+            ncol=2,
+            fontsize='x-small',
+            #bbox_to_anchor=(0.5, 0.5)
+        )
+        plt.tight_layout()
+        # ax2.legend(frameon = False, loc=1, fontsize = 'medium')
+        #plt.legend(frameon = False)
+        plt.savefig(f'reports/{metric}.pdf', bbox_inches='tight')
+        plt.savefig(f'reports/{metric}.png',
+                    transparent=True,
+                    bbox_inches='tight')
+
+        plt.show()
 
     def plot_metrics(self, res_dict, reconstruction_errors, sil_scores,
                      CH_scores, DBI_scores, n_clusters):
@@ -164,7 +249,6 @@ class Plotters():
             axs0.plot([-1, 9], [0, 0], color='k', linewidth=1.0)
             axs0.set_xlim(-1, 9)
 
-    
         if DBI_scores is not None:
             figname = 'Fig7'
             fig = plt.figure(figsize=(12, 5))
@@ -446,7 +530,7 @@ class Plotters():
 
         #fig = plt.figure(figsize=(20, 10))
 
-        fig, (axs1, axs0) = plt.subplots(2, 1, sharex=True, figsize=(10, 9))
+        fig, (axs1, axs0) = plt.subplots(2, 1, sharex=True, figsize=(11, 9))
 
         # axs0 = fig.add_subplot(1, 1, 1)
         # axs1 = axs0.twinx()
@@ -527,7 +611,7 @@ class Plotters():
             #   arrowprops=dict(arrowstyle="fancy"))
 
             #axs0.annotate(f'{i}:' + txt, (0.05, 40 - m))
-            axs1.annotate(f'{i}:' + txt, (0.03, max(y_pareto_list) + 4 - m))
+            axs1.annotate(f'{i}:' + txt, (0.03, max(y_pareto_list) + 5.5 - m))
             m += 0.65
             #axs0.annotate(txt, ((x_pareto_list[i]), y_pareto_list[i]))
 
@@ -589,8 +673,8 @@ class Plotters():
 
         axs0.set_ylim(0, 40)  # most of the data
         axs1.set_xlim(0, )
-        axs1.set_ylim((max(y_pareto_list) - 5),
-                      (max(y_pareto_list) + 5))  # outliers only
+        axs1.set_ylim((max(y_pareto_list) - 6),
+                      (max(y_pareto_list) + 6))  # outliers only
 
         # hide the spines between ax and ax2
         axs1.spines['bottom'].set_visible(False)
