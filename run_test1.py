@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_plot_results import test
+from tests.unit_test_plot_metrics import test
 
 test()
