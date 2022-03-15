@@ -4,6 +4,8 @@ from src.plotters import Plotters
 import numpy as np
 from tabulate import tabulate
 from datetime import datetime, date
+import csv
+import pickle
 
 
 class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
@@ -11,8 +13,7 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
         super(AutoKNN, self).__init__(*args, **kwargs)
 
     def get_data(self, path):
-        X_train, X_test, y_train, y_test = self.load_data(
-            path=path)
+        X_train, X_test, y_train, y_test = self.load_data(path=path)
 
         self.X_train = X_train
         self.X_test = X_test
@@ -46,19 +47,44 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                     true_labels=self.y_test,
                     methods=methods,
                     termination=termination)
-
+                best_X, best_f = self.get_best(res)
+                print(best_X)
+                print(best_f)
                 self.ensembles.append((self.dr_method, self.cl_method))
                 self.hyperparameters_list.append(hyperparameters)
-                self.solutions_list.append((res.X))
-                self.accuracies_list.append((-1 * res.F))
+                self.solutions_list.append(([i for i in best_X]))
+                self.accuracies_list.append((-1 * best_f[0]))
                 self.n_labels_list.append(n_labels)
+
+        h_file = open('tests/ensemble_test_results/h_list.pkl', 'wb')
+        pickle.dump(self.hyperparameters_list, h_file)
+        print(self.accuracies_list)
+        res_dict = {
+            z[0]: list(z[1:])
+            for z in zip(self.ensembles, self.solutions_list,
+                         self.accuracies_list)
+        }
+
+        res_file = open('tests/ensemble_test_results/res_dict.pkl', 'wb')
+        pickle.dump(res_dict, res_file)
+
+        # output = [
+        #     self.ensembles, self.hyperparameters_list, self.solutions_list,
+        #     self.accuracies_list, self.n_labels_list
+        # ]
+
+        # with open("tests/autoKNNresults/optKNNoutput.csv", "w",
+        #           newline="") as f:
+        #     writer = csv.writer(f)
+        #     writer.writerows(output)
 
         return None
 
     def show_solutions(self):
         self.res_dict = {
             z[0]: list(z[1:])
-            for z in zip(self.ensembles, self.solutions_list, self.n_labels_list, self.accuracies_list)
+            for z in zip(self.ensembles, self.solutions_list,
+                         self.n_labels_list, self.accuracies_list)
         }
 
         table = []
@@ -67,23 +93,25 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
 
         today = date.today()
         d = today.strftime("%b-%d-%Y")
-        f = open(f'tests/ensemble_test_results/result_unit_test_ensemble{d}.txt',
-                 'w')
+        f = open(
+            f'tests/ensemble_test_results/result_unit_test_ensemble{d}.txt',
+            'w')
 
         now = datetime.now()
 
         print(now.strftime("%Y/%m/%d %H:%M:%S"), file=f)
 
-        print(tabulate(table,
-                       headers=['ensemble', 'solutions',
-                                'n of clusters', 'accuracies'],
-                       tablefmt="rst"),
+        print(tabulate(
+            table,
+            headers=['ensemble', 'solutions', 'n of clusters', 'accuracies'],
+            tablefmt="rst"),
               file=f)
 
         print(
             tabulate(table,
-                     headers=['ensemble', 'solutions',
-                              'n of clusters', 'accuracies'],
+                     headers=[
+                         'ensemble', 'solutions', 'n of clusters', 'accuracies'
+                     ],
                      tablefmt="rst"))
 
         return None
