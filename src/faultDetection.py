@@ -28,7 +28,6 @@ class DR():
 
     -All reconstruction methods must receive (model, dr_data) and return (reconstructed data)
     '''
-
     def __init__(self):
         pass
 
@@ -91,7 +90,6 @@ class Clustering():
 
     -All reconstruction methods must receive (data, labels) and return (metric score)
     '''
-
     def __init__(self):
         pass
 
@@ -204,7 +202,6 @@ class FaultDetection():
 
     -All prediction methods must receive (classification model, test data) and return (predicted labels)
     '''
-
     def __init__(self):
         pass
 
@@ -279,9 +276,9 @@ class FaultDetection():
         Idea: check if how many gtl were assigned, then create clusters with the remaining.
         '''
 
-        for el in aligned_labels_set:
-            if el not in aligned_labels_set:
-                aligned_labels_set.add(el)
+        # for el in aligned_labels_set:
+        #     if el not in aligned_labels_set:
+        #         aligned_labels_set.add(el)
 
         return aligned_labels, len(aligned_labels_set)
 

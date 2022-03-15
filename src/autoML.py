@@ -158,6 +158,8 @@ class genTuner(ElementwiseProblem):
         cl_train_labels = cl.performGEN(self.cl_method, dr_data,
                                         x[(self.cl_index - 1):-1])
 
+        n_train_labels = len(set(cl_train_labels))
+
         # if len(set(cl_train_labels)) > 2:
         #     sil_score = cl.silmetric(dr_data, cl_train_labels)
         # else:
@@ -210,7 +212,7 @@ class genTuner(ElementwiseProblem):
             true_labels=self.true_labels,
             predicted_labels=aligned_predicted_labels)
 
-        out["F"] = [-1 * accuracy]
+        out["F"] = [-1 * accuracy, n_train_labels]
 
 
 class pcaTuner(ElementwiseProblem):
@@ -221,7 +223,6 @@ class pcaTuner(ElementwiseProblem):
     xl and xu are lists containing the lower/upper limits allowed for each hyperparameter
         These are based on either intuition or some recommendation for the method.
     '''
-
     def __init__(self, data):
         super().__init__(n_var=1,
                          n_obj=1,
@@ -361,7 +362,6 @@ class Solvers(ElementwiseProblem):
     Contains methods to auto tune fault detection methods
 
     '''
-
     def __init__(self):
         super(ElementwiseProblem, self).__init__()
 
@@ -421,7 +421,8 @@ class Solvers(ElementwiseProblem):
         else:
             pass
 
-    def genSolver(self, train_data, test_data, true_labels, methods, termination):
+    def genSolver(self, train_data, test_data, true_labels, methods,
+                  termination):
         self.dr_method = methods[0]
         self.cl_method = methods[1]
         self.mask = []
@@ -459,19 +460,21 @@ class Solvers(ElementwiseProblem):
                      tablefmt="rst"))
         '''---------------------------------------------------------------'''
 
-        # algorithm = NSGA2(pop_size=5,
-        #                   n_offsprings=2,
-        #                   sampling=sampling,
-        #                   crossover=crossover,
-        #                   mutation=mutation,
-        #                   eliminate_duplicates=True)
+        algorithm = NSGA2(pop_size=10,
+                          n_offsprings=5,
+                          sampling=sampling,
+                          crossover=crossover,
+                          mutation=mutation,
+                          eliminate_duplicates=True)
 
-        algorithm = GA(pop_size=10,
-                       n_offsprings=5,
-                       sampling=sampling,
-                       crossover=crossover,
-                       mutation=mutation,
-                       eliminate_duplicates=True)
+
+        # algorithm = GA(pop_size=10,
+        #                n_offsprings=5,
+        #                sampling=sampling,
+        #                crossover=crossover,
+        #                mutation=mutation,
+        #                eliminate_duplicates=True)
+
 
         if termination == 'test':
             termination = get_termination("n_gen", 2)
@@ -683,6 +686,7 @@ class Metrics():
                     non_noise_cl_train_labels = cl_train_labels[non_noise_index]
                     non_noise_data = dr_data[non_noise_index]
 
+
                     if len(set(cl_train_labels)) > 2:
                         sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
                         CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
@@ -701,11 +705,18 @@ class Metrics():
 
                     mse = sklearn.metrics.mean_squared_error(X_train, rc_data)
 
+                    print(key[1])
+                    print(h_values)
+                    print(h_values[0:-1])
+                    print(h_values[1:-1])
+                    print(h_values[2:-1])
                     cl_train_labels = cl.performGEN(key[1], dr_data,
                                                     h_values[3:-1])
+                    
                     non_noise_index = np.where(cl_train_labels != -1)
                     non_noise_cl_train_labels = cl_train_labels[non_noise_index]
                     non_noise_data = dr_data[non_noise_index]
+
 
                     if len(set(cl_train_labels)) > 2:
                         sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
@@ -723,4 +734,16 @@ class Metrics():
                 DBI_values.append(DBI_score)
                 n_clusters_values.append(len(set(cl_train_labels)))
 
+
         return mse_values, sil_values, CH_values, DBI_values, n_clusters_values
+
+
+    def get_best(self, res):
+
+        for i in range(len(res.F)):
+            if res.F[i, 0] == min(res.F[:, 0]):
+                best_x = res.X[i]
+                best_f = res.F[i]
+
+        return best_x, best_f
+

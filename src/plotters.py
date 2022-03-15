@@ -21,7 +21,6 @@ class Plotters():
     '''
     Utilities class to handle all plots.
     '''
-
     def __init__(self):
         pass
 
@@ -325,7 +324,7 @@ class Plotters():
                 for j in range(len(h_values))
             ])[:-2]
 
-            accuracy = [el for el in value[1]]
+            accuracy = value[1]  #[el for el in value[1]]
 
             x = k_dict[' '.join(key)]
 

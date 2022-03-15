@@ -1,0 +1,5 @@
+"('NO DR', 'KMEANS')","('NO DR', 'DBSCAN')","('PCA', 'KMEANS')","('PCA', 'DBSCAN')"
+"['n_clusters', 'num_neighbors']","['eps', 'min_samples', 'num_neighbors']","['n_comp', 'n_clusters', 'num_neighbors']","['n_comp', 'eps', 'min_samples', 'num_neighbors']"
+[22 9],[35.65836078723629 13 15],[22 37 1],[35 32.23604746960023 23 9]
+[0.86795252],[0.52818991],[0.95400593],[0.66913947]
+9,8,12,8
