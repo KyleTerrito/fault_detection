@@ -460,8 +460,8 @@ class Solvers(ElementwiseProblem):
                      tablefmt="rst"))
         '''---------------------------------------------------------------'''
 
-        algorithm = NSGA2(pop_size=10,
-                          n_offsprings=5,
+        algorithm = NSGA2(pop_size=2,
+                          n_offsprings=2,
                           sampling=sampling,
                           crossover=crossover,
                           mutation=mutation,

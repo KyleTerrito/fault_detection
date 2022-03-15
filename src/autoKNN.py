@@ -47,13 +47,12 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                     true_labels=self.y_test,
                     methods=methods,
                     termination=termination)
-                best_X, best_f = self.get_best(res)
-                print(best_X)
-                print(best_f)
+                #best_X, best_f = self.get_best(res)
+
                 self.ensembles.append((self.dr_method, self.cl_method))
                 self.hyperparameters_list.append(hyperparameters)
-                self.solutions_list.append(([i for i in best_X]))
-                self.accuracies_list.append((-1 * best_f[0]))
+                self.solutions_list.append((res.X))
+                self.accuracies_list.append((-1 * res.F))
                 self.n_labels_list.append(n_labels)
 
         h_file = open('tests/ensemble_test_results/h_list.pkl', 'wb')
