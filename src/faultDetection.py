@@ -98,6 +98,12 @@ class Clustering():
     def silmetric(self, data, labels):
         return metrics.silhouette_score(data, labels)
 
+    def CHindexmetric(self, data, labels):
+        return metrics.calinski_harabasz_score(data, labels)
+
+    def DBImetric(self, data, labels):
+        return metrics.davies_bouldin_score(data, labels)
+
     def mstscore(self, data, labels):
 
         if labels is None:

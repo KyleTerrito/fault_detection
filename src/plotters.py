@@ -26,7 +26,7 @@ class Plotters():
         pass
 
     def plot_metrics(self, res_dict, reconstruction_errors, sil_scores,
-                     n_clusters):
+                     CH_scores, DBI_scores, n_clusters):
 
         key_names_all = [
             'NO DR KMEANS',
@@ -137,6 +137,47 @@ class Plotters():
                 i += 1
 
             axs0.set_ylabel(r'$\rm Silhouette\ score$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs0.plot([-1, 9], [0, 0], color='k', linewidth=1.0)
+            axs0.set_xlim(-1, 9)
+
+        if CH_scores is not None:
+            figname = 'Fig6'
+            fig = plt.figure(figsize=(12, 5))
+            axs0 = fig.add_subplot(1, 1, 1)
+            i = 0
+
+            for key, value in res_dict.items():
+                x = k_dict[' '.join(key)]
+
+                axs0.bar(x, CH_scores[i], align='center', width=0.3)
+                i += 1
+
+            axs0.set_ylabel(r'$\rm Calinski-Harabasz\ score$',
+                            labelpad=5,
+                            fontsize='x-large',
+                            fontname='Times New Roman')
+
+            axs0.plot([-1, 9], [0, 0], color='k', linewidth=1.0)
+            axs0.set_xlim(-1, 9)
+
+    
+        if DBI_scores is not None:
+            figname = 'Fig7'
+            fig = plt.figure(figsize=(12, 5))
+            axs0 = fig.add_subplot(1, 1, 1)
+            i = 0
+
+            for key, value in res_dict.items():
+                x = k_dict[' '.join(key)]
+
+                axs0.bar(x, DBI_scores[i], align='center', width=0.3)
+                i += 1
+
+            axs0.set_ylabel(r'$\rm Davies-Bouldin\ score$',
                             labelpad=5,
                             fontsize='x-large',
                             fontname='Times New Roman')

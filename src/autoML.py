@@ -200,7 +200,7 @@ class genTuner(ElementwiseProblem):
         aligned_predicted_labels, self.n_labels = fd.alignLabels(
             self.true_labels,
             real_y_test_predicted,
-            majority_threshold_percentage=0.8,
+            majority_threshold_percentage=1.0,
             print_reassignments=False)
 
         #self.n_labels = len(set(aligned_predicted_labels))
@@ -466,8 +466,8 @@ class Solvers(ElementwiseProblem):
         #                   mutation=mutation,
         #                   eliminate_duplicates=True)
 
-        algorithm = GA(pop_size=2,
-                       n_offsprings=2,
+        algorithm = GA(pop_size=10,
+                       n_offsprings=5,
                        sampling=sampling,
                        crossover=crossover,
                        mutation=mutation,
@@ -633,6 +633,8 @@ class Metrics():
 
         mse_values = []
         sil_values = []
+        CH_values = []
+        DBI_values = []
         n_clusters_values = []
         dr = DR()
         cl = Clustering()
@@ -652,10 +654,18 @@ class Metrics():
                     cl_train_labels = cl.performGEN(key[1], dr_data,
                                                     h_values[:-1])
 
+                    non_noise_index = np.where(cl_train_labels != -1)
+                    non_noise_cl_train_labels = cl_train_labels[non_noise_index]
+                    non_noise_data = dr_data.iloc[non_noise_index]
+
                     if len(set(cl_train_labels)) > 2:
-                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                        sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
+                        CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
+                        DBI_score = cl.DBImetric(non_noise_data, non_noise_cl_train_labels)
                     else:
                         sil_score = -1
+                        CH_score = 0
+                        DBI_score = 0
 
                 elif methods[i] == 'PCA':
 
@@ -667,12 +677,20 @@ class Metrics():
                     mse = sklearn.metrics.mean_squared_error(X_train, rc_data)
 
                     cl_train_labels = cl.performGEN(key[1], dr_data,
-                                                    h_values[0:-1])
+                                                    h_values[1:-1])
+
+                    non_noise_index = np.where(cl_train_labels != -1)
+                    non_noise_cl_train_labels = cl_train_labels[non_noise_index]
+                    non_noise_data = dr_data[non_noise_index]
 
                     if len(set(cl_train_labels)) > 2:
-                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                        sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
+                        CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
+                        DBI_score = cl.DBImetric(non_noise_data, non_noise_cl_train_labels)
                     else:
                         sil_score = -1
+                        CH_score = 0
+                        DBI_score = 0
 
                 elif methods[i] == 'UMAP':
 
@@ -684,16 +702,25 @@ class Metrics():
                     mse = sklearn.metrics.mean_squared_error(X_train, rc_data)
 
                     cl_train_labels = cl.performGEN(key[1], dr_data,
-                                                    h_values[2:-1])
+                                                    h_values[3:-1])
+                    non_noise_index = np.where(cl_train_labels != -1)
+                    non_noise_cl_train_labels = cl_train_labels[non_noise_index]
+                    non_noise_data = dr_data[non_noise_index]
 
                     if len(set(cl_train_labels)) > 2:
-                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                        sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
+                        CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
+                        DBI_score = cl.DBImetric(non_noise_data, non_noise_cl_train_labels)
                     else:
                         sil_score = -1
+                        CH_score = 0
+                        DBI_score = 0
 
                 #print(f'Labels in metrics: {set(cl_train_labels)}')
                 mse_values.append(mse)
                 sil_values.append(sil_score)
+                CH_values.append(CH_score)
+                DBI_values.append(DBI_score)
                 n_clusters_values.append(len(set(cl_train_labels)))
 
-        return mse_values, sil_values, n_clusters_values
+        return mse_values, sil_values, CH_values, DBI_values, n_clusters_values

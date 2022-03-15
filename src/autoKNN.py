@@ -89,21 +89,42 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
         return None
 
     def plot_results(self):
-        rc_error, sil_scores, n_clusters = self.get_metrics(
+        rc_error, sil_scores, CH_scores, DBI_scores, n_clusters = self.get_metrics(
             res_dict=self.res_dict, X_train=self.X_train)
 
-        self.plot_metrics(res_dict=self.res_dict,
-                          reconstruction_errors=rc_error,
-                          sil_scores=None,
-                          n_clusters=None)
 
         self.plot_metrics(res_dict=self.res_dict,
-                          reconstruction_errors=None,
-                          sil_scores=sil_scores,
-                          n_clusters=None)
+                            reconstruction_errors=rc_error,
+                            sil_scores=None,
+                            CH_scores=None,
+                            DBI_scores=None,
+                            n_clusters=None)
 
         self.plot_metrics(res_dict=self.res_dict,
-                          reconstruction_errors=None,
-                          sil_scores=None,
-                          n_clusters=n_clusters)
+                            reconstruction_errors=None,
+                            sil_scores=sil_scores,
+                            CH_scores=None,
+                            DBI_scores=None,
+                            n_clusters=None)
+
+        self.plot_metrics(res_dict=self.res_dict,
+                            reconstruction_errors=None,
+                            sil_scores=None,
+                            CH_scores=CH_scores,
+                            DBI_scores=None,
+                            n_clusters=None)
+
+        self.plot_metrics(res_dict=self.res_dict,
+                            reconstruction_errors=None,
+                            sil_scores=None,
+                            CH_scores=None,
+                            DBI_scores=DBI_scores,
+                            n_clusters=None)
+
+        self.plot_metrics(res_dict=self.res_dict,
+                            reconstruction_errors=None,
+                            sil_scores=None,
+                            CH_scores=None,
+                            DBI_scores=None,
+                            n_clusters=n_clusters)
         return None
