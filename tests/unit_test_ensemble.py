@@ -114,22 +114,42 @@ def test():
 
     metrics = Metrics()
 
-    rc_error, sil_scores, n_clusters = metrics.get_metrics(
+    rc_error, sil_scores, CH_scores, DBI_scores, n_clusters = metrics.get_metrics(
         res_dict=res_dict_test, X_train=X_train)
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=rc_error,
                          sil_scores=None,
+                         CH_scores=None,
+                         DBI_scores=None,
                          n_clusters=None)
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=None,
                          sil_scores=sil_scores,
+                         CH_scores=None,
+                         DBI_scores=None,
                          n_clusters=None)
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=None,
                          sil_scores=None,
+                         CH_scores=CH_scores,
+                         DBI_scores=None,
+                         n_clusters=None)
+
+    plotter.plot_metrics(res_dict=res_dict,
+                         reconstruction_errors=None,
+                         sil_scores=None,
+                         CH_scores=None,
+                         DBI_scores=DBI_scores,
+                         n_clusters=None)
+
+    plotter.plot_metrics(res_dict=res_dict,
+                         reconstruction_errors=None,
+                         sil_scores=None,
+                         CH_scores=None,
+                         DBI_scores=None,
                          n_clusters=n_clusters)
     '''
     End - Plot results---------------------------------------------

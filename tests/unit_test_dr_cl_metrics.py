@@ -17,7 +17,7 @@ def test():
 
     metrics = Metrics()
 
-    rc_error, sil_scores, n_clusters = metrics.get_metrics(res_dict=res_dict,
+    rc_error, sil_scores, CH_scores, DBI_scores, n_clusters = metrics.get_metrics(res_dict=res_dict,
                                                            X_train=X_train)
 
     #print(n_clusters)
@@ -26,16 +26,36 @@ def test():
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=rc_error,
                          sil_scores=None,
+                         CH_scores=None,
+                         DBI_scores=None,
                          n_clusters=None)
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=None,
                          sil_scores=sil_scores,
+                         CH_scores=None,
+                         DBI_scores=None,
                          n_clusters=None)
 
     plotter.plot_metrics(res_dict=res_dict,
                          reconstruction_errors=None,
                          sil_scores=None,
+                         CH_scores=CH_scores,
+                         DBI_scores=None,
+                         n_clusters=None)
+
+    plotter.plot_metrics(res_dict=res_dict,
+                         reconstruction_errors=None,
+                         sil_scores=None,
+                         CH_scores=None,
+                         DBI_scores=DBI_scores,
+                         n_clusters=None)
+
+    plotter.plot_metrics(res_dict=res_dict,
+                         reconstruction_errors=None,
+                         sil_scores=None,
+                         CH_scores=None,
+                         DBI_scores=None,
                          n_clusters=n_clusters)
 
     return None

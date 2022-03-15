@@ -467,12 +467,14 @@ class Solvers(ElementwiseProblem):
                           mutation=mutation,
                           eliminate_duplicates=True)
 
+
         # algorithm = GA(pop_size=10,
         #                n_offsprings=5,
         #                sampling=sampling,
         #                crossover=crossover,
         #                mutation=mutation,
         #                eliminate_duplicates=True)
+
 
         if termination == 'test':
             termination = get_termination("n_gen", 2)
@@ -634,6 +636,8 @@ class Metrics():
 
         mse_values = []
         sil_values = []
+        CH_values = []
+        DBI_values = []
         n_clusters_values = []
         dr = DR()
         cl = Clustering()
@@ -653,10 +657,18 @@ class Metrics():
                     cl_train_labels = cl.performGEN(key[1], dr_data,
                                                     h_values[:-1])
 
+                    non_noise_index = np.where(cl_train_labels != -1)
+                    non_noise_cl_train_labels = cl_train_labels[non_noise_index]
+                    non_noise_data = dr_data.iloc[non_noise_index]
+
                     if len(set(cl_train_labels)) > 2:
-                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                        sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
+                        CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
+                        DBI_score = cl.DBImetric(non_noise_data, non_noise_cl_train_labels)
                     else:
                         sil_score = -1
+                        CH_score = 0
+                        DBI_score = 0
 
                 elif methods[i] == 'PCA':
 
@@ -670,10 +682,19 @@ class Metrics():
                     cl_train_labels = cl.performGEN(key[1], dr_data,
                                                     h_values[1:-1])
 
+                    non_noise_index = np.where(cl_train_labels != -1)
+                    non_noise_cl_train_labels = cl_train_labels[non_noise_index]
+                    non_noise_data = dr_data[non_noise_index]
+
+
                     if len(set(cl_train_labels)) > 2:
-                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                        sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
+                        CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
+                        DBI_score = cl.DBImetric(non_noise_data, non_noise_cl_train_labels)
                     else:
                         sil_score = -1
+                        CH_score = 0
+                        DBI_score = 0
 
                 elif methods[i] == 'UMAP':
 
@@ -691,18 +712,31 @@ class Metrics():
                     print(h_values[2:-1])
                     cl_train_labels = cl.performGEN(key[1], dr_data,
                                                     h_values[3:-1])
+                    
+                    non_noise_index = np.where(cl_train_labels != -1)
+                    non_noise_cl_train_labels = cl_train_labels[non_noise_index]
+                    non_noise_data = dr_data[non_noise_index]
+
 
                     if len(set(cl_train_labels)) > 2:
-                        sil_score = cl.silmetric(dr_data, cl_train_labels)
+                        sil_score = cl.silmetric(non_noise_data, non_noise_cl_train_labels)
+                        CH_score = cl.CHindexmetric(non_noise_data, non_noise_cl_train_labels)
+                        DBI_score = cl.DBImetric(non_noise_data, non_noise_cl_train_labels)
                     else:
                         sil_score = -1
+                        CH_score = 0
+                        DBI_score = 0
 
                 #print(f'Labels in metrics: {set(cl_train_labels)}')
                 mse_values.append(mse)
                 sil_values.append(sil_score)
+                CH_values.append(CH_score)
+                DBI_values.append(DBI_score)
                 n_clusters_values.append(len(set(cl_train_labels)))
 
-        return mse_values, sil_values, n_clusters_values
+
+        return mse_values, sil_values, CH_values, DBI_values, n_clusters_values
+
 
     def get_best(self, res):
 
@@ -712,3 +746,4 @@ class Metrics():
                 best_f = res.F[i]
 
         return best_x, best_f
+
