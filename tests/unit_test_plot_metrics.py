@@ -13,5 +13,5 @@ def test():
     plotter.plot_metrics_opt(metric='sil_score')
     plotter.plot_metrics_opt(metric='ch_score')
     plotter.plot_metrics_opt(metric='dbi_score')
-
+    plotter.plot_metrics_opt(metric='sil_score')
     return None

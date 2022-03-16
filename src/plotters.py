@@ -57,7 +57,9 @@ class Plotters():
                 axs0.scatter(-1 * metrics_sorted[:, -1],
                              metrics_sorted[:, metrics_dict[metric]],
                              marker='s',
-                             label=f'{dr_method}-{cl_method}')
+                             label=f'{dr_method}-{cl_method}',
+                             edgecolor='k',
+                             linewidths=0.5)
 
         axs0.set_ylabel(y_label_dict[metric],
                         labelpad=5,
@@ -103,7 +105,7 @@ class Plotters():
             fontsize='x-small',
             #bbox_to_anchor=(0.5, 0.5)
         )
-        plt.tight_layout()
+        # plt.tight_layout()
         # ax2.legend(frameon = False, loc=1, fontsize = 'medium')
         #plt.legend(frameon = False)
         plt.savefig(f'reports/{metric}.pdf', bbox_inches='tight')
@@ -558,7 +560,7 @@ class Plotters():
             for z in zip(key_names_all, key_names_format)
         }
 
-        fig = plt.figure(figsize=(12, 8))
+        fig = plt.figure(figsize=(12.5, 8.5))
         axs0 = fig.add_subplot(1, 1, 1)
 
         i = 0
@@ -604,6 +606,8 @@ class Plotters():
                          s=100,
                          marker='s',
                          c=colors_dict[method[0]],
+                         edgecolor='k',
+                         linewidths=0.5,
                          alpha=0.9,
                          label=f'{method[0]}')
 
@@ -614,6 +618,8 @@ class Plotters():
             y_pareto_list,
             s=100,
             marker='s',
+            edgecolor='k',
+            linewidths=0.5,
             c=c_list,
             alpha=0.9,
         )
@@ -629,11 +635,12 @@ class Plotters():
                     fontfamily='serif',
                     fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (320, 250 - m),
+                axs0.annotate(f'{i}: ' + txt, (280, 240 - m),
                               xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
-                              fontweight='bold')
+                              fontweight='bold',
+                              fontsize='small')
 
                 m += 15
 
@@ -680,12 +687,12 @@ class Plotters():
         plt.rcParams["font.family"] = "serif"
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
-        plt.rcParams['font.size'] = 15
+        plt.rcParams['font.size'] = 13
         axs0.legend(frameon=False,
                     loc='upper left',
                     ncol=2,
                     fontsize='x-small')
-        plt.tight_layout()
+        #plt.tight_layout()
 
         figname = 'Fig2'
         plt.savefig(f'reports/{figname}.pdf', bbox_inches='tight')
