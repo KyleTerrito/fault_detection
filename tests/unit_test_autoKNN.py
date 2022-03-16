@@ -5,12 +5,12 @@ from filelock import FileLock
 
 def test():
     knn = AutoKNN()
-    knn.get_data(path='data/processed/TEP_Selected_Faults.xlsx')
+    knn.get_data(path='data/processed/Full_TEP.xlsx')
 
-    dr_methods = ['NO DR', 'PCA']  #, 'UMAP']
-    cl_methods = ['KMEANS', 'DBSCAN']  #, 'HDBSCAN']
+    dr_methods = ['NO DR', 'PCA', 'UMAP']
+    cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
-    knn.optimize(dr_methods, cl_methods, termination='test')
+    knn.optimize(dr_methods, cl_methods, termination='run')
 
     knn.show_solutions()
 

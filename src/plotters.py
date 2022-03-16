@@ -13,9 +13,12 @@ from matplotlib.pyplot import gca
 from matplotlib.spines import Spine
 from matplotlib.ticker import (AutoLocator, AutoMinorLocator,
                                FormatStrFormatter, MultipleLocator)
+import matplotlib.ticker
+from typing import Optional
 from matplotlib.transforms import Affine2D
 from mpl_toolkits.axes_grid1.inset_locator import (InsetPosition, inset_axes,
                                                    mark_inset)
+from math import log
 
 import pickle
 
@@ -38,8 +41,8 @@ class Plotters():
             'dbi_score': r'$\rm Davies-Bouldin\ Index$'
         }
 
-        dr_methods = ['NO DR', 'PCA']  #, 'UMAP']
-        cl_methods = ['KMEANS', 'DBSCAN']  #, 'HDBSCAN']
+        dr_methods = ['NO DR', 'PCA', 'UMAP']
+        cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
         for dr_method in dr_methods:
             for cl_method in cl_methods:
@@ -477,6 +480,33 @@ class Plotters():
 
         return None
 
+    def restore_minor_ticks_log_plot(self,
+                                     ax: Optional[plt.Axes] = None,
+                                     n_subticks=9) -> None:
+        """For axes with a logrithmic scale where the span (max-min) exceeds
+        10 orders of magnitude, matplotlib will not set logarithmic minor ticks.
+        If you don't like this, call this function to restore minor ticks.
+
+        Args:
+            ax:
+            n_subticks: Number of Should be either 4 or 9.
+
+        Returns:
+            None
+        """
+        if ax is None:
+            ax = plt.gca()
+
+        locmaj = matplotlib.ticker.LogLocator(base=10, numticks=1000)
+        ax.xaxis.set_major_locator(locmaj)
+        locmin = matplotlib.ticker.LogLocator(base=10.0,
+                                              subs=np.linspace(
+                                                  0, 1.0,
+                                                  n_subticks + 2)[1:-1],
+                                              numticks=1000)
+        ax.xaxis.set_minor_locator(locmin)
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+
     def plot_pareto(self, res_dict, hyper_names):
 
         h_names_all = [
@@ -521,26 +551,24 @@ class Plotters():
             'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive'
         ]
 
-        colors_dict = dict(zip(colors, key_names_format))
-        #print(colors_dict)
+        colors_dict = dict(zip(key_names_format, colors))
+
         k_dict = {
             z[0]: list(z[1:])
             for z in zip(key_names_all, key_names_format)
         }
 
-        #fig = plt.figure(figsize=(20, 10))
-
-        fig, (axs1, axs0) = plt.subplots(2, 1, sharex=True, figsize=(11, 9))
-
-        # axs0 = fig.add_subplot(1, 1, 1)
-        # axs1 = axs0.twinx()
+        fig = plt.figure(figsize=(12, 8))
+        axs0 = fig.add_subplot(1, 1, 1)
 
         i = 0
         x_pareto_list = []
         y_pareto_list = []
+        c_list = []
 
         labels_list = []
         methods_list = []
+        legend_list = []
 
         for key, value in res_dict.items():
 
@@ -562,20 +590,23 @@ class Plotters():
                 ])[:-2]
 
                 labels_list.append(label)
+                c_list.append(colors_dict[method[0]])
+                legend_list.append(method[0][0])
 
-            #accuracy = value[1]  #[el for el in value[1]]
             accuracies = (np.asarray(value[1])[:, 0])
             n_clusters = (np.asarray(value[1])[:, 1])
 
             x_pareto_list.extend(abs(accuracies))
-            #print(x_pareto)
-            #print('---------------------')
             y_pareto_list.extend(abs(n_clusters))
-            #print(y_pareto)
 
-            #x = k_dict[' '.join(key)]
+            axs0.scatter(accuracies,
+                         n_clusters,
+                         s=100,
+                         marker='s',
+                         c=colors_dict[method[0]],
+                         alpha=0.9,
+                         label=f'{method[0]}')
 
-            # axs0.bar(x, accuracy, align='center', width=0.3, label=label)
             i += 1
 
         axs0.scatter(
@@ -583,44 +614,34 @@ class Plotters():
             y_pareto_list,
             s=100,
             marker='s',
-            c='navy'  #colors_dict[methods_list[i][0]]
-        )  #, label=label)
-
-        axs1.scatter(
-            x_pareto_list[y_pareto_list.index(max(y_pareto_list))],
-            max(y_pareto_list),
-            s=100,
-            marker='s',
-            c='navy'  #c=colors_dict[methods_list[y_pareto_list.index(
-            #    max(y_pareto_list))][0]]
+            c=c_list,
+            alpha=0.9,
         )
+
         m = 0
 
         for i, txt in enumerate(labels_list):
 
-            if y_pareto_list[i] != max(y_pareto_list):
-
+            if x_pareto_list[i] > 0.70:
                 axs0.annotate(
-                    i, (x_pareto_list[i] + 0.01, y_pareto_list[i] + 0.01))  #,
+                    i, (x_pareto_list[i] + 0.01, y_pareto_list[i] + 0.05),
+                    color=c_list[i],
+                    fontfamily='serif',
+                    fontweight='bold')
 
-            if y_pareto_list[i] == max(y_pareto_list):
-                axs1.annotate(
-                    i, (x_pareto_list[i] + 0.01, y_pareto_list[i] + 0.01))  #,
-            #   xytext=(x_pareto_list[i] + 0.05,
-            #           y_pareto_list[i] + 0.05),
-            #   arrowprops=dict(arrowstyle="fancy"))
+                axs0.annotate(f'{i}: ' + txt, (320, 250 - m),
+                              xycoords='figure points',
+                              color=c_list[i],
+                              fontfamily='serif',
+                              fontweight='bold')
 
-            #axs0.annotate(f'{i}:' + txt, (0.05, 40 - m))
-            axs1.annotate(f'{i}:' + txt, (0.03, max(y_pareto_list) + 5.5 - m))
-            m += 0.65
-            #axs0.annotate(txt, ((x_pareto_list[i]), y_pareto_list[i]))
+                m += 15
 
+        axs0.set_yscale('log')
         axs0.set_ylabel(r'$\rm Number\ of\ clusters$',
                         labelpad=5,
                         fontsize='x-large',
                         fontname='Times New Roman')
-
-        #axs0.yaxis.set_label_coords(-0.06, 1.5)
 
         axs0.set_xlabel(r'$\rm Accuracy$',
                         labelpad=5,
@@ -632,84 +653,40 @@ class Plotters():
         for tick in axs0.get_yticklabels():
             tick.set_fontname("Times New Roman")
 
-        for tick in axs1.get_yticklabels():
-            tick.set_fontname("Times New Roman")
+        self.restore_minor_ticks_log_plot(axs0)
 
-        axs0.yaxis.set_major_locator(AutoLocator())
-        axs0.yaxis.set_minor_locator(AutoMinorLocator())
+        axs0.xaxis.set_major_locator(AutoLocator())
+        axs0.xaxis.set_minor_locator(AutoMinorLocator())
+
         axs0.tick_params(direction='out',
                          pad=10,
                          length=9,
                          width=1.0,
-                         labelsize='large')
+                         labelsize='x-large')
         axs0.tick_params(which='minor',
                          direction='out',
                          pad=10,
                          length=5,
                          width=1.0,
-                         labelsize='large')
-
-        axs1.yaxis.set_major_locator(AutoLocator())
-        axs1.yaxis.set_minor_locator(AutoMinorLocator())
-        axs1.tick_params(direction='out',
-                         pad=10,
-                         length=9,
-                         width=1.0,
-                         labelsize='large')
-        axs1.tick_params(which='minor',
-                         direction='out',
-                         pad=10,
-                         length=5,
-                         width=1.0,
-                         labelsize='large')
+                         labelsize='x-large')
 
         for axis in ['top', 'bottom', 'left', 'right']:
             axs0.spines[axis].set_linewidth(1.0)
-            axs1.spines[axis].set_linewidth(1.0)
 
-        # Additional formatting
-        # axs2.set_autoscale_on
         axs0.set_xlim(0, )
-
-        axs0.set_ylim(0, 40)  # most of the data
-        axs1.set_xlim(0, )
-        axs1.set_ylim((max(y_pareto_list) - 6),
-                      (max(y_pareto_list) + 6))  # outliers only
-
-        # hide the spines between ax and ax2
-        axs1.spines['bottom'].set_visible(False)
-        axs0.spines['top'].set_visible(False)
-        axs1.xaxis.tick_top()
-        #axs1.set_xticks([])
-        axs1.tick_params(labeltop=False)  # don't put tick labels at the top
-        axs0.xaxis.tick_bottom()
-
-        d = .010  # how big to make the diagonal lines in axes coordinates
-        # arguments to pass to plot, just so we don't keep repeating them
-        kwargs = dict(transform=axs1.transAxes, color='k', clip_on=False)
-        axs1.plot((-d, +d), (-d, +d), **kwargs)  # top-left diagonal
-        axs1.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
-
-        kwargs.update(transform=axs0.transAxes)  # switch to the bottom axes
-        axs0.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
-        axs0.plot((1 - d, 1 + d), (1 - d, 1 + d),
-                  **kwargs)  # bottom-right diagonal
+        axs0.set_ylim(0, )
 
         plt.rcParams['mathtext.fontset'] = 'cm'
         plt.rcParams["font.family"] = "serif"
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
-        plt.rcParams['font.size'] = 13
-        # axs0.legend(
-        #     frameon=False,
-        #     loc='upper left',
-        #     ncol=2,
-        #     fontsize='x-small',
-        #     #bbox_to_anchor=(0.5, 0.5)
-        # )
+        plt.rcParams['font.size'] = 15
+        axs0.legend(frameon=False,
+                    loc='upper left',
+                    ncol=2,
+                    fontsize='x-small')
         plt.tight_layout()
-        # ax2.legend(frameon = False, loc=1, fontsize = 'medium')
-        #plt.legend(frameon = False)
+
         figname = 'Fig2'
         plt.savefig(f'reports/{figname}.pdf', bbox_inches='tight')
         plt.savefig(f'reports/{figname}.png',
