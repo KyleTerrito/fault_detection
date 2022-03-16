@@ -635,7 +635,7 @@ class Plotters():
                     fontfamily='serif',
                     fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (280, 240 - m),
+                axs0.annotate(f'{i}: ' + txt, (255, 240 - m),
                               xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
