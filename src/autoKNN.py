@@ -14,7 +14,7 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
         super(AutoKNN, self).__init__(*args, **kwargs)
 
     def get_data(self, path):
-        X_train, X_test, y_train, y_test = self.load_data(path=path)
+        X_train, X_test, y_train, y_test = self.load_data(path=path, normalize_method="Z")
 
         self.X_train = X_train
         self.X_test = X_test

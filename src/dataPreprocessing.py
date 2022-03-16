@@ -10,7 +10,7 @@ Provides methods for data preprocessing for faulDetection.
 #import packages
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, Normalizer
 from sklearn.model_selection import train_test_split
 
 
@@ -18,7 +18,7 @@ class DataPreprocessing():
     def __init__(self):
         pass
 
-    def load_data(self, path='data/processed/TEP0-2_labeled.xlsx'):
+    def load_data(self, path='data/processed/TEP0-2_labeled.xlsx', normalize_method=None):
         # Load data
         data = pd.read_excel(path)
         print(data.head(10))
@@ -33,13 +33,27 @@ class DataPreprocessing():
                                                             stratify=labels)
         print(set(y_test))
 
-        return X_train, X_test, y_train, y_test
+
+        X_train_normal, X_test_normal = self.scale(X_train, X_test, normalize_method)
+
+        return X_train_normal, X_test_normal, y_train, y_test
 
     # scaling
-    def scale(self, data):
-        scaler = StandardScaler()
-        data = scaler.fit_transform(data)
+    def scale(self, X_train, X_test, normalize_method):
+        if normalize_method == None:
+            return(X_train, X_test)
 
+        elif normalize_method == "Z":
+            scaler = StandardScaler().fit(X_train)
+            X_train_normal = scaler.transform(X_train)
+            X_test_normal = scaler.transform(X_test)
+        
+        elif normalize_method == "mean":
+            scaler = StandardScaler(with_std=False).fit(X_train)
+            X_train_normal = scaler.transform(X_train)
+            X_test_normal = scaler.transform(X_test)
+
+        return (X_train_normal, X_test_normal)
     '''
     removed user define function as is does the same as sklearn's import
     '''
