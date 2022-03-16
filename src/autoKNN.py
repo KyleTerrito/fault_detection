@@ -14,7 +14,8 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
         super(AutoKNN, self).__init__(*args, **kwargs)
 
     def get_data(self, path):
-        X_train, X_test, y_train, y_test = self.load_data(path=path, normalize_method="Z")
+        X_train, X_test, y_train, y_test = self.load_data(
+            path=path, normalize_method="mean")
 
         self.X_train = X_train
         self.X_test = X_test
@@ -58,8 +59,8 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
 
                 metrics = [sil_scores, ch_scores, dbi_scores, it_accuracies]
 
-                print('---------------------------')
-                print(metrics)
+                # print('---------------------------')
+                # print(metrics)
 
                 metrics = pd.DataFrame(metrics,
                                        index=[
