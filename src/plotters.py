@@ -37,8 +37,8 @@ class Plotters():
         metrics_dict = {'sil_score': 0, 'ch_score': 1, 'dbi_score': 2}
         y_label_dict = {
             'sil_score': r'$\rm Silhouette\ Score$',
-            'ch_score': r'$\rm  Calinski-Harabasz\ Index$',
-            'dbi_score': r'$\rm Davies-Bouldin\ Index$'
+            'ch_score': r'$\rm  Normalized\ Calinski-Harabasz\ Index$',
+            'dbi_score': r'$\rm Normalized\ Davies-Bouldin\ Index$'
         }
 
         dr_methods = ['NO DR', 'PCA', 'UMAP']
@@ -54,12 +54,24 @@ class Plotters():
                 metrics_sorted = metrics.transpose().sort_values(
                     by=[f'{dr_method}_{cl_method}_acc']).to_numpy()
 
-                axs0.scatter(-1 * metrics_sorted[:, -1],
-                             metrics_sorted[:, metrics_dict[metric]],
-                             marker='s',
-                             label=f'{dr_method}-{cl_method}',
-                             edgecolor='k',
-                             linewidths=0.5)
+                if metric is not 'sil_score':
+
+                    axs0.scatter(-1 * metrics_sorted[:, -1],
+                                 metrics_sorted[:, metrics_dict[metric]] /
+                                 max(metrics_sorted[:, metrics_dict[metric]]),
+                                 marker='s',
+                                 label=f'{dr_method}-{cl_method}',
+                                 edgecolor='k',
+                                 linewidths=0.5)
+
+                    axs0.set_ylim(0, 1.2)
+                else:
+                    axs0.scatter(-1 * metrics_sorted[:, -1],
+                                 metrics_sorted[:, metrics_dict[metric]],
+                                 marker='s',
+                                 label=f'{dr_method}-{cl_method}',
+                                 edgecolor='k',
+                                 linewidths=0.5)
 
         axs0.set_ylabel(y_label_dict[metric],
                         labelpad=5,
@@ -98,10 +110,11 @@ class Plotters():
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
         plt.rcParams['font.size'] = 13
+        axs0.set_xlim(0, )
         axs0.legend(
             frameon=False,
             loc='best',
-            ncol=2,
+            ncol=1,
             fontsize='x-small',
             #bbox_to_anchor=(0.5, 0.5)
         )
