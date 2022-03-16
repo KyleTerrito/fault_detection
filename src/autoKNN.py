@@ -6,6 +6,7 @@ from tabulate import tabulate
 from datetime import datetime, date
 import csv
 import pickle
+import pandas as pd
 
 
 class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
@@ -41,20 +42,37 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
 
                 methods = [dr_method, cl_method]
                 #solver = Solvers()
-                res, hyperparameters, n_labels = self.genSolver(
+                res, hyperparameters, n_labels, sil_scores, ch_scores, dbi_scores, it_accuracies = self.genSolver(
                     train_data=np.asarray(self.X_train),
                     test_data=self.X_test,
                     true_labels=self.y_test,
                     methods=methods,
                     termination=termination)
-                best_X, best_f = self.get_best(res)
-                print(best_X)
-                print(best_f)
+                #best_X, best_f = self.get_best(res)
+
                 self.ensembles.append((self.dr_method, self.cl_method))
                 self.hyperparameters_list.append(hyperparameters)
-                self.solutions_list.append(([i for i in best_X]))
-                self.accuracies_list.append((-1 * best_f[0]))
+                self.solutions_list.append((res.X))
+                self.accuracies_list.append((-1 * res.F))
                 self.n_labels_list.append(n_labels)
+
+                metrics = [sil_scores, ch_scores, dbi_scores, it_accuracies]
+
+                print('---------------------------')
+                print(metrics)
+
+                metrics = pd.DataFrame(metrics,
+                                       index=[
+                                           f'{dr_method}_{cl_method}_sil',
+                                           f'{dr_method}_{cl_method}_ch',
+                                           f'{dr_method}_{cl_method}_dbi',
+                                           f'{dr_method}_{cl_method}_acc'
+                                       ])
+
+                metrics_file = open(
+                    f'tests/ensemble_test_results/metrics{dr_method}_{cl_method}.pkl',
+                    'wb')
+                pickle.dump(metrics, metrics_file)
 
         h_file = open('tests/ensemble_test_results/h_list.pkl', 'wb')
         pickle.dump(self.hyperparameters_list, h_file)
@@ -120,39 +138,38 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
         rc_error, sil_scores, CH_scores, DBI_scores, n_clusters = self.get_metrics(
             res_dict=self.res_dict, X_train=self.X_train)
 
+        self.plot_metrics(res_dict=self.res_dict,
+                          reconstruction_errors=rc_error,
+                          sil_scores=None,
+                          CH_scores=None,
+                          DBI_scores=None,
+                          n_clusters=None)
 
         self.plot_metrics(res_dict=self.res_dict,
-                            reconstruction_errors=rc_error,
-                            sil_scores=None,
-                            CH_scores=None,
-                            DBI_scores=None,
-                            n_clusters=None)
+                          reconstruction_errors=None,
+                          sil_scores=sil_scores,
+                          CH_scores=None,
+                          DBI_scores=None,
+                          n_clusters=None)
 
         self.plot_metrics(res_dict=self.res_dict,
-                            reconstruction_errors=None,
-                            sil_scores=sil_scores,
-                            CH_scores=None,
-                            DBI_scores=None,
-                            n_clusters=None)
+                          reconstruction_errors=None,
+                          sil_scores=None,
+                          CH_scores=CH_scores,
+                          DBI_scores=None,
+                          n_clusters=None)
 
         self.plot_metrics(res_dict=self.res_dict,
-                            reconstruction_errors=None,
-                            sil_scores=None,
-                            CH_scores=CH_scores,
-                            DBI_scores=None,
-                            n_clusters=None)
+                          reconstruction_errors=None,
+                          sil_scores=None,
+                          CH_scores=None,
+                          DBI_scores=DBI_scores,
+                          n_clusters=None)
 
         self.plot_metrics(res_dict=self.res_dict,
-                            reconstruction_errors=None,
-                            sil_scores=None,
-                            CH_scores=None,
-                            DBI_scores=DBI_scores,
-                            n_clusters=None)
-
-        self.plot_metrics(res_dict=self.res_dict,
-                            reconstruction_errors=None,
-                            sil_scores=None,
-                            CH_scores=None,
-                            DBI_scores=None,
-                            n_clusters=n_clusters)
+                          reconstruction_errors=None,
+                          sil_scores=None,
+                          CH_scores=None,
+                          DBI_scores=None,
+                          n_clusters=n_clusters)
         return None
