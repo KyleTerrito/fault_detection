@@ -638,22 +638,36 @@ class Plotters():
         )
 
         m = 0
+        met_list = []
+
+        met_list1 = [''.join([i for i in j[0:4]]) for j in labels_list]
+        met_list2 = [''.join([i for i in j[4:14]]) for j in labels_list]
+        x_pos = np.linspace(0.95, 1., len(met_list1))
+        y_pos = np.linspace(-0.95, 1.1, len(met_list1))
+        x_pos_dict = dict(zip(met_list1, x_pos))
+        y_pos_dict = dict(zip(met_list2, y_pos))
 
         for i, txt in enumerate(labels_list):
 
-            if x_pareto_list[i] > 0.70:
+            met = [i for i in txt[:14]]
+
+            if x_pareto_list[i] > 0.99 and met not in met_list:
+
                 axs0.annotate(
-                    i, (x_pareto_list[i] + 0.01, y_pareto_list[i] + 0.05),
+                    i, (x_pos_dict[''.join(met)[0:4]],
+                        y_pareto_list[i] + y_pos_dict[''.join(met)[4:14]]),
                     color=c_list[i],
                     fontfamily='serif',
                     fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (255, 240 - m),
+                axs0.annotate(f'{i}: ' + txt, (170, 180 - m),
                               xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
                               fontweight='bold',
                               fontsize='small')
+
+                met_list.append(met)
 
                 m += 15
 
