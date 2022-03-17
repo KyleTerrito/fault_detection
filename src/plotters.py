@@ -64,7 +64,7 @@ class Plotters():
                                  edgecolor='k',
                                  linewidths=0.5)
 
-                    axs0.set_ylim(0, 1.2)
+                    axs0.set_ylim(0, 1)
                 else:
                     axs0.scatter(-1 * metrics_sorted[:, -1],
                                  metrics_sorted[:, metrics_dict[metric]],
