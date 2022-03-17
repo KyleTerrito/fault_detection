@@ -37,8 +37,8 @@ class Plotters():
         metrics_dict = {'sil_score': 0, 'ch_score': 1, 'dbi_score': 2}
         y_label_dict = {
             'sil_score': r'$\rm Silhouette\ Score$',
-            'ch_score': r'$\rm  Calinski-Harabasz\ Index$',
-            'dbi_score': r'$\rm Davies-Bouldin\ Index$'
+            'ch_score': r'$\rm  Normalized\ Calinski-Harabasz\ Index$',
+            'dbi_score': r'$\rm Normalized\ Davies-Bouldin\ Index$'
         }
 
         dr_methods = ['NO DR', 'PCA', 'UMAP']
@@ -54,12 +54,24 @@ class Plotters():
                 metrics_sorted = metrics.transpose().sort_values(
                     by=[f'{dr_method}_{cl_method}_acc']).to_numpy()
 
-                axs0.scatter(-1 * metrics_sorted[:, -1],
-                             metrics_sorted[:, metrics_dict[metric]],
-                             marker='s',
-                             label=f'{dr_method}-{cl_method}',
-                             edgecolor='k',
-                             linewidths=0.5)
+                if metric is not 'sil_score':
+
+                    axs0.scatter(-1 * metrics_sorted[:, -1],
+                                 metrics_sorted[:, metrics_dict[metric]] /
+                                 max(metrics_sorted[:, metrics_dict[metric]]),
+                                 marker='s',
+                                 label=f'{dr_method}-{cl_method}',
+                                 edgecolor='k',
+                                 linewidths=0.5)
+
+                    axs0.set_ylim(0, 1)
+                else:
+                    axs0.scatter(-1 * metrics_sorted[:, -1],
+                                 metrics_sorted[:, metrics_dict[metric]],
+                                 marker='s',
+                                 label=f'{dr_method}-{cl_method}',
+                                 edgecolor='k',
+                                 linewidths=0.5)
 
         axs0.set_ylabel(y_label_dict[metric],
                         labelpad=5,
@@ -98,10 +110,11 @@ class Plotters():
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
         plt.rcParams['font.size'] = 13
+        axs0.set_xlim(0, )
         axs0.legend(
             frameon=False,
             loc='best',
-            ncol=2,
+            ncol=1,
             fontsize='x-small',
             #bbox_to_anchor=(0.5, 0.5)
         )
@@ -625,22 +638,36 @@ class Plotters():
         )
 
         m = 0
+        met_list = []
+
+        met_list1 = [''.join([i for i in j[0:4]]) for j in labels_list]
+        met_list2 = [''.join([i for i in j[4:14]]) for j in labels_list]
+        x_pos = np.linspace(0.95, 1., len(met_list1))
+        y_pos = np.linspace(-0.95, 1.1, len(met_list1))
+        x_pos_dict = dict(zip(met_list1, x_pos))
+        y_pos_dict = dict(zip(met_list2, y_pos))
 
         for i, txt in enumerate(labels_list):
 
-            if x_pareto_list[i] > 0.70:
+            met = [i for i in txt[:14]]
+
+            if x_pareto_list[i] > 0.99 and met not in met_list:
+
                 axs0.annotate(
-                    i, (x_pareto_list[i] + 0.01, y_pareto_list[i] + 0.05),
+                    i, (x_pos_dict[''.join(met)[0:4]],
+                        y_pareto_list[i] + y_pos_dict[''.join(met)[4:14]]),
                     color=c_list[i],
                     fontfamily='serif',
                     fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (255, 240 - m),
+                axs0.annotate(f'{i}: ' + txt, (170, 180 - m),
                               xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
                               fontweight='bold',
                               fontsize='small')
+
+                met_list.append(met)
 
                 m += 15
 
