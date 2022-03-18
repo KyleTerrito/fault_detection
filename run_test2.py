@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_plot_pareto import test
+from tests.opt_pyro import test
 
 test()

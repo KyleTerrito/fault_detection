@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_autoKNN import test
+from tests.opt_full_tep import test
 
 test()

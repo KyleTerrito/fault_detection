@@ -52,14 +52,21 @@ class MyDisplay(Display):
 
 
 class genTuner(ElementwiseProblem):
-    def __init__(self, train_data, test_data, true_labels, methods):
+    def __init__(self,
+                 train_data,
+                 test_data,
+                 true_labels,
+                 methods,
+                 mode='supervised'):
         self.sil_scores = []
         self.ch_scores = []
         self.dbi_scores = []
         self.it_accuracies = []
+        self.it_nClusters = []
         self.n_var = 0
         self.xl = []
         self.xu = []
+        self.mode = mode
 
         self.dr_method = methods[0]
         self.cl_method = methods[1]
@@ -176,6 +183,7 @@ class genTuner(ElementwiseProblem):
         self.sil_scores.append(sil_score)
         self.ch_scores.append(ch_score)
         self.dbi_scores.append(dbi_score)
+        self.it_nClusters.append(len(set(cl_train_labels)))
 
         # Fault detection
 
@@ -226,7 +234,12 @@ class genTuner(ElementwiseProblem):
 
         self.it_accuracies.append(-1 * accuracy)
 
-        out["F"] = [-1 * accuracy, n_train_labels]
+        if self.mode == 'supervised':
+
+            out["F"] = [-1 * accuracy, n_train_labels]
+
+        elif self.mode == 'unsupervised':
+            out["F"] = [-1 * sil_score, dbi_score]
 
         #return self.sil_scores, self.ch_scores, self.dbi_scores
 
@@ -437,8 +450,13 @@ class Solvers(ElementwiseProblem):
         else:
             pass
 
-    def genSolver(self, train_data, test_data, true_labels, methods,
-                  termination):
+    def genSolver(self,
+                  train_data,
+                  test_data,
+                  true_labels,
+                  methods,
+                  termination,
+                  mode='supervised'):
         self.dr_method = methods[0]
         self.cl_method = methods[1]
         self.mask = []
@@ -452,8 +470,11 @@ class Solvers(ElementwiseProblem):
 
         sampling, crossover, mutation = self.masker(mask=self.mask)
 
-        problem = genTuner(train_data, test_data, true_labels,
-                           methods)  # use the corresponding problem
+        problem = genTuner(train_data,
+                           test_data,
+                           true_labels,
+                           methods,
+                           mode=mode)  # use the corresponding problem
 
         # dv_dict = dict(
         #     zip(self.mask_names, [self.mask, problem.xl, problem.xu]))
@@ -509,7 +530,7 @@ class Solvers(ElementwiseProblem):
                        save_history=True,
                        verbose=True)
 
-        return res, self.mask_names, problem.n_labels, problem.sil_scores, problem.ch_scores, problem.dbi_scores, problem.it_accuracies
+        return res, self.mask_names, problem.n_labels, problem.sil_scores, problem.ch_scores, problem.dbi_scores, problem.it_accuracies, problem.it_nClusters
 
     def pcaSolver(self, data):
 
