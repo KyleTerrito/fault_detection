@@ -6,7 +6,7 @@ def test():
 
     #knn.get_data(path='data/processed/TEP_Selected_Faults.xlsx')
 
-    exp = 'default'
+    exp = 'met_pyro'
 
     plotter = Plotters(exp=exp)
 

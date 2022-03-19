@@ -8,7 +8,7 @@ import numpy as np
 
 def test():
 
-    plotter = Plotters(exp='pyro')
+    plotter = Plotters(exp='met_pyro')
 
     plotter.plot_metrics_opt_3d(metrics=['sil_score', 'ch_score', 'dbi_score'])
     plotter.plot_metrics_opt_3d(metrics=['sil_score', 'ch_score', 'dbi_score'])

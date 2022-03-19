@@ -806,7 +806,7 @@ class Plotters():
             for z in zip(key_names_all, key_names_format)
         }
 
-        fig = plt.figure(figsize=(12.5, 8.5))
+        fig = plt.figure(figsize=(13.5, 9))
         axs0 = fig.add_subplot(1, 1, 1)
 
         i = 0
@@ -884,16 +884,15 @@ class Plotters():
 
             met = [i for i in txt[:14]]
 
-            if x_pareto_list[i] > 0.99 and met not in met_list:
+            if x_pareto_list[i] > 0.90 and met not in met_list:
 
-                axs0.annotate(
-                    i, (x_pos_dict[''.join(met)[0:4]],
-                        y_pareto_list[i] + y_pos_dict[''.join(met)[4:14]]),
-                    color=c_list[i],
-                    fontfamily='serif',
-                    fontweight='bold')
+                axs0.annotate(i, (x_pareto_list[i] + 0.01, y_pareto_list[i] +
+                                  y_pos_dict[''.join(met)[4:14]]),
+                              color=c_list[i],
+                              fontfamily='serif',
+                              fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (170, 180 - m),
+                axs0.annotate(f'{i}: ' + txt, (200, 220 - m),
                               xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
@@ -941,18 +940,15 @@ class Plotters():
             axs0.spines[axis].set_linewidth(1.0)
 
         axs0.set_xlim(0, )
-        axs0.set_ylim(0, )
+        #axs0.set_ylim(0, )
 
         plt.rcParams['mathtext.fontset'] = 'cm'
         plt.rcParams["font.family"] = "serif"
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
-        plt.rcParams['font.size'] = 13
-        axs0.legend(frameon=False,
-                    loc='upper left',
-                    ncol=2,
-                    fontsize='x-small')
-        #plt.tight_layout()
+        plt.rcParams['font.size'] = 15
+        axs0.legend(frameon=False, loc='upper left', ncol=2, fontsize='small')
+        plt.tight_layout()
 
         #figname = 'Fig2'
         plt.savefig(f'reports/{self.exp}_pareto.pdf', bbox_inches='tight')
@@ -1015,7 +1011,7 @@ class Plotters():
             for z in zip(key_names_all, key_names_format)
         }
 
-        fig = plt.figure(figsize=(12.5, 8.5))
+        fig = plt.figure(figsize=(12, 9))
         axs0 = fig.add_subplot(1, 1, 1)
 
         i = 0
@@ -1125,7 +1121,7 @@ class Plotters():
 
             met = [i for i in txt[:14]]
 
-            if x_pareto_list[i] > -0.3 and met not in met_list:
+            if x_pareto_list[i] > 0.8 and met not in met_list:
 
                 axs0.annotate(
                     i, (x_pareto_list[i] + 0.01, y_pareto_list[i] + 0.05),
@@ -1133,7 +1129,7 @@ class Plotters():
                     fontfamily='serif',
                     fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (170, 180 - m),
+                axs0.annotate(f'{i}: ' + txt, (100, 180 - m),
                               xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
@@ -1180,19 +1176,17 @@ class Plotters():
         for axis in ['top', 'bottom', 'left', 'right']:
             axs0.spines[axis].set_linewidth(1.0)
 
-        #axs0.set_xlim(0, )
+        axs0.set_xlim(0, )
         axs0.set_ylim(0, )
 
         plt.rcParams['mathtext.fontset'] = 'cm'
         plt.rcParams["font.family"] = "serif"
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
-        plt.rcParams['font.size'] = 13
-        axs0.legend(frameon=False,
-                    loc='upper left',
-                    ncol=2,
-                    fontsize='x-small')
-        #plt.tight_layout()
+        plt.rcParams['font.size'] = 15
+        axs0.legend(frameon=False, loc='upper left', ncol=2, fontsize='small')
+
+        plt.tight_layout()
 
         plt.savefig(f'reports/{self.exp}_pareto_unsupervised.pdf',
                     bbox_inches='tight')
