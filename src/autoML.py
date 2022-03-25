@@ -37,21 +37,15 @@ from src.dataPreprocessing import DataPreprocessing
 from src.faultDetection import DR, Clustering, FaultDetection
 
 warnings.filterwarnings("ignore")
-"""-------------------------------------------------------------------------------"""
-
-
-class MyDisplay(Display):
-    def _do(self, problem, evaluator, algorithm):
-        super()._do(problem, evaluator, algorithm)
-        #self.output.append("metric_a", -1 * (algorithm.pop.get("F")))
-        self.output.append("metric_a", min(algorithm.pop.get("F")))
-
-
-"""------------------Optimization problems----------------------------------------"""
-# TODO: update individual dr/cl methods for new data naming convention
 
 
 class genTuner(ElementwiseProblem):
+    '''
+    A generic problem creator. 
+
+    Takes an ensemble in 'methods', sets up the corresponding optimization problem.
+    
+    '''
     def __init__(self,
                  train_data,
                  test_data,
@@ -600,7 +594,6 @@ class Solvers(ElementwiseProblem):
                        termination=get_termination("n_gen", 10),
                        seed=1,
                        save_history=True,
-                       display=MyDisplay(),
                        verbose=True)
 
         return res
@@ -625,7 +618,6 @@ class Solvers(ElementwiseProblem):
                        termination=get_termination("n_gen", 10),
                        seed=1,
                        save_history=True,
-                       display=MyDisplay(),
                        verbose=True)
 
         return res
@@ -650,7 +642,6 @@ class Solvers(ElementwiseProblem):
                        termination=get_termination("n_gen", 10),
                        seed=1,
                        save_history=True,
-                       display=MyDisplay(),
                        verbose=True)
 
         return res

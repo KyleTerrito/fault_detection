@@ -10,6 +10,11 @@ import pandas as pd
 
 
 class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
+    '''
+    Collects methods for optimization and visualization of DR+Clustering ensembles.
+    See examples of usage in tests/opt_full_tep.py and opt_metrics_pyro.py
+    
+    '''
     def __init__(self, *args, **kwargs):
         super(AutoKNN, self).__init__(*args, **kwargs)
 
