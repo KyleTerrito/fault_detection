@@ -6,6 +6,6 @@ To run test:
 
 '''
 
-from tests.unit_test_plot_metrics import test
+from tests.opt_sel_tep import test
 
 test()
