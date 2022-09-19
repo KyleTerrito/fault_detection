@@ -91,14 +91,14 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                                            f'{dr_method}_{cl_method}_cl',
                                        ])
 
-                metrics_file = open(
-                    f'tests/ensemble_test_results/{self.exp}metrics{dr_method}_{cl_method}.pkl',
-                    'wb')
-                pickle.dump(metrics, metrics_file)
+                # metrics_file = open(
+                #     f'tests/ensemble_test_results/{self.exp}metrics{dr_method}_{cl_method}.pkl',
+                #     'wb')
+                # pickle.dump(metrics, metrics_file)
 
-        h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
-                      'wb')
-        pickle.dump(self.hyperparameters_list, h_file)
+        # h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
+        #               'wb')
+        # pickle.dump(self.hyperparameters_list, h_file)
         #print(self.accuracies_list)
         res_dict = {
             z[0]: list(z[1:])
