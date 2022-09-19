@@ -106,11 +106,11 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                          self.accuracies_list)
         }
 
-        res_file = open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl',
-                        'wb')
-        pickle.dump(res_dict, res_file)
+        # res_file = open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl',
+        #                 'wb')
+        # pickle.dump(res_dict, res_file)
 
-        return None
+        return res_dict #None
 
     def show_solutions(self):
         self.res_dict = {
