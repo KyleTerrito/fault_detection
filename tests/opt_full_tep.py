@@ -2,7 +2,7 @@ import sys
 import os
 
 os.chdir('../../')
-os.getcwd()
+print(f'running from: {os.getcwd()}')
 
 from autocluster.autoKNN import AutoKNN
 
