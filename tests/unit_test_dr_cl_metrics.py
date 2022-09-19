@@ -1,6 +1,6 @@
-from src.autoML import Metrics
-from src.dataPreprocessing import DataPreprocessing
-from src.plotters import Plotters
+from autocluster.autoML import Metrics
+from autocluster.dataPreprocessing import DataPreprocessing
+from autocluster.plotters import Plotters
 import pickle
 
 

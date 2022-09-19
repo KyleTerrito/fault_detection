@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from src.faultDetection import FaultDetection as FD
-from src.dataPreprocessing import DataPreprocessing as DP
+from autocluster.faultDetection import FaultDetection as FD
+from autocluster.dataPreprocessing import DataPreprocessing as DP
 
 
 def test():

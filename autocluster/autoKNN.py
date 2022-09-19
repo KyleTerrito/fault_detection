@@ -1,6 +1,6 @@
-from src.dataPreprocessing import DataPreprocessing
-from src.autoML import Solvers, Metrics
-from src.plotters import Plotters
+from autocluster.dataPreprocessing import DataPreprocessing
+from autocluster.autoML import Solvers, Metrics
+from autocluster.plotters import Plotters
 import numpy as np
 from tabulate import tabulate
 from datetime import datetime, date

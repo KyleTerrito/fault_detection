@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 
-from src.faultDetection import FaultDetection
-from src.faultDetection import Clustering
-from src.dataPreprocessing import DataPreprocessing
+from autocluster.faultDetection import FaultDetection
+from autocluster.faultDetection import Clustering
+from autocluster.dataPreprocessing import DataPreprocessing
 
 
 def test():

@@ -33,8 +33,8 @@ from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from tabulate import tabulate
 
-from src.dataPreprocessing import DataPreprocessing
-from src.faultDetection import DR, Clustering, FaultDetection
+from autocluster.dataPreprocessing import DataPreprocessing
+from autocluster.faultDetection import DR, Clustering, FaultDetection
 
 warnings.filterwarnings("ignore")
 
