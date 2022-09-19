@@ -1,7 +1,7 @@
 import sys
 import os
 
-os.chdir('../')
+os.chdir('../../')
 os.getcwd()
 
 from autocluster.autoKNN import AutoKNN
