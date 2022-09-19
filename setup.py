@@ -6,7 +6,7 @@ with open("README.md", "r") as readme_file:
 requirements = ["ipython>=6", "nbformat>=4", "nbconvert>=5", "requests>=2"]
 
 setup(
-    name="faultdetection",
+    name="autocluster",
     version="0.0.1",
     author="Luis Briceno-Mena",
     author_email="lbrice1@lsu.edu",
