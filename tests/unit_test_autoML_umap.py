@@ -1,4 +1,4 @@
-from src.autoML import Solvers
+from autocluster.autoML import Solvers
 import numpy as np
 import pandas as pd
 

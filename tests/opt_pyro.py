@@ -1,4 +1,4 @@
-from src.autoKNN import AutoKNN
+from autocluster.autoKNN import AutoKNN
 
 
 def test():
