@@ -1,5 +1,5 @@
-from src.autoKNN import AutoKNN
-from src.plotters import Plotters
+from autocluster.autoKNN import AutoKNN
+from autocluster.plotters import Plotters
 import pickle
 
 import matplotlib.pyplot as plt

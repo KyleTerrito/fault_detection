@@ -1,7 +1,7 @@
-from src.autoML import Solvers
+from autocluster.autoML import Solvers
 import numpy as np
 import pandas as pd
-from src.faultDetection import DR
+from autocluster.faultDetection import DR
 
 
 def test():

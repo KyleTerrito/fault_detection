@@ -1,4 +1,4 @@
-from src.plotters import Plotters
+from autocluster.plotters import Plotters
 import pickle
 
 

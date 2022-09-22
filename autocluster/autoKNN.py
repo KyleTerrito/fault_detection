@@ -1,6 +1,6 @@
-from src.dataPreprocessing import DataPreprocessing
-from src.autoML import Solvers, Metrics
-from src.plotters import Plotters
+from autocluster.dataPreprocessing import DataPreprocessing
+from autocluster.autoML import Solvers, Metrics
+from autocluster.plotters import Plotters
 import numpy as np
 from tabulate import tabulate
 from datetime import datetime, date
@@ -91,14 +91,14 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                                            f'{dr_method}_{cl_method}_cl',
                                        ])
 
-                metrics_file = open(
-                    f'tests/ensemble_test_results/{self.exp}metrics{dr_method}_{cl_method}.pkl',
-                    'wb')
-                pickle.dump(metrics, metrics_file)
+                # metrics_file = open(
+                #     f'tests/ensemble_test_results/{self.exp}metrics{dr_method}_{cl_method}.pkl',
+                #     'wb')
+                # pickle.dump(metrics, metrics_file)
 
-        h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
-                      'wb')
-        pickle.dump(self.hyperparameters_list, h_file)
+        # h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
+        #               'wb')
+        # pickle.dump(self.hyperparameters_list, h_file)
         #print(self.accuracies_list)
         res_dict = {
             z[0]: list(z[1:])
@@ -106,11 +106,11 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                          self.accuracies_list)
         }
 
-        res_file = open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl',
-                        'wb')
-        pickle.dump(res_dict, res_file)
+        # res_file = open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl',
+        #                 'wb')
+        # pickle.dump(res_dict, res_file)
 
-        return None
+        return res_dict #None
 
     def show_solutions(self):
         self.res_dict = {

@@ -1,7 +1,7 @@
-from src.autoKNN import AutoKNN
+from autocluster.autoKNN import AutoKNN
 import pandas as pd
 
-from src.plotters import Plotters
+from autocluster.plotters import Plotters
 import pickle
 
 
