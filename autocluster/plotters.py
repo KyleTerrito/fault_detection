@@ -1,6 +1,5 @@
 from ctypes import alignment
 from re import I
-from cmd2 import style
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.font_manager import FontProperties
