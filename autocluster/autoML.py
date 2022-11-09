@@ -62,8 +62,9 @@ class genTuner(ElementwiseProblem):
         self.xu = []
         self.mode = mode
 
-        self.dr_method = methods[0]
-        self.cl_method = methods[1]
+        self.p_method = methods[0]
+        self.dr_method = methods[1]
+        self.cl_method = methods[2]
 
         self.setDRhyper(methods=self.dr_method, train_data=train_data)
         self.setCLhyper(methods=self.cl_method, train_data=train_data)
@@ -90,7 +91,7 @@ class genTuner(ElementwiseProblem):
         le = preprocessing.LabelEncoder().fit(true_labels)
         true_labels = le.transform(true_labels)
         self.true_labels = np.asarray(true_labels)
-
+    
     def setDRhyper(self, methods, train_data):
 
         if 'PCA' in methods:
@@ -134,7 +135,7 @@ class genTuner(ElementwiseProblem):
             self.xu.extend([100, 50])
 
         else:
-            print('Please select at least on clustering method')
+            print('Please select at least one clustering method')
             quit()
 
     def _evaluate(self, x, out, *args, **kwargs):
@@ -451,8 +452,8 @@ class Solvers(ElementwiseProblem):
                   methods,
                   termination,
                   mode='supervised'):
-        self.dr_method = methods[0]
-        self.cl_method = methods[1]
+        self.dr_method = methods[1]
+        self.cl_method = methods[2]
         self.mask = []
         self.mask_names = []
 

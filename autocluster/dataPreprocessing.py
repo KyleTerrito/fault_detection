@@ -10,7 +10,7 @@ Provides methods for data preprocessing for faulDetection.
 #import packages
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler, Normalizer
+from sklearn.preprocessing import StandardScaler, Normalizer, MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 
@@ -51,6 +51,11 @@ class DataPreprocessing():
         
         elif normalize_method == "mean":
             scaler = StandardScaler(with_std=False).fit(X_train)
+            X_train_normal = scaler.transform(X_train)
+            X_test_normal = scaler.transform(X_test)
+        
+        elif normalize_method == "min_max":
+            scaler = MinMaxScaler().fit(X_train)
             X_train_normal = scaler.transform(X_train)
             X_test_normal = scaler.transform(X_test)
 

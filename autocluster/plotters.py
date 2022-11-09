@@ -18,7 +18,7 @@ from matplotlib.transforms import Affine2D
 from mpl_toolkits.axes_grid1.inset_locator import (InsetPosition, inset_axes,
                                                    mark_inset)
 from math import log
-
+import itertools
 import pickle
 
 
@@ -26,7 +26,7 @@ class Plotters():
     '''
     Utilities class to handle all plots.
     '''
-    def __init__(self, exp):
+    def __init__(self, exp = 'test'):
         self.exp = exp
 
     def plot_metrics_opt(self, metric):
@@ -127,7 +127,7 @@ class Plotters():
 
         plt.show()
 
-    def plot_metrics_opt_3d(self, metrics):
+    def plot_metrics_opt_3d(self, metrics, p_methods, dr_methods, cl_methods):
         fig = plt.figure(figsize=(14, 7))
         axs0 = fig.add_subplot(1, 3, 1)
         axs1 = fig.add_subplot(1, 3, 2)
@@ -140,113 +140,185 @@ class Plotters():
             'dbi_score': r'$\rm Normalized\ Davies-Bouldin\ Index$'
         }
 
-        dr_methods = ['NO DR', 'PCA', 'UMAP']
-        cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
+        #dr_methods = ['NO DR', 'PCA', 'UMAP']
+        #cl_methods = ['KMEANS', 'DBSCAN', 'HDBSCAN']
 
-        key_names_format = [
-            'NO DR-KMEANS',
-            'NO DR-DBSCAN',
-            'NO DR-HDBSCAN',
-            'PCA-KMEANS',
-            'PCA-DBSCAN',
-            'PCA-HDBSCAN',
-            'UMAP-KMEANS',
-            'UMAP-DBSCAN',
-            'UMAP-HDBSCAN',
+        key_names = [
+            'Z; NO DR; KMEANS',
+            'Z; NO DR; DBSCAN',
+            'Z; NO DR; HDBSCAN',
+            'Z; PCA; KMEANS',
+            'Z; PCA; DBSCAN',
+            'Z; PCA; HDBSCAN',
+            'Z; UMAP; KMEANS',
+            'Z; UMAP; DBSCAN',
+            'Z; UMAP; HDBSCAN',
+            'mean; NO DR; KMEANS',
+            'mean; NO DR; DBSCAN',
+            'mean; NO DR; HDBSCAN',
+            'mean; PCA; KMEANS',
+            'mean; PCA; DBSCAN',
+            'mean; PCA; HDBSCAN',
+            'mean; UMAP; KMEANS',
+            'mean; UMAP; DBSCAN',
+            'mean; UMAP; HDBSCAN',
+            'min_max; NO DR; KMEANS',
+            'min_max; NO DR; DBSCAN',
+            'min_max; NO DR; HDBSCAN',
+            'min_max; PCA; KMEANS',
+            'min_max; PCA; DBSCAN',
+            'min_max; PCA; HDBSCAN',
+            'min_max; UMAP; KMEANS',
+            'min_max; UMAP; DBSCAN',
+            'min_max; UMAP; HDBSCAN',
         ]
 
-        markers = ['v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o']
+        key_names_format = [
+            'Z-score; NO DR; KMEANS',
+            'Z-score; NO DR; DBSCAN',
+            'Z-score; NO DR; HDBSCAN',
+            'Z-score; PCA; KMEANS',
+            'Z-score; PCA; DBSCAN',
+            'Z-score; PCA; HDBSCAN',
+            'Z-score; UMAP; KMEANS',
+            'Z-score; UMAP; DBSCAN',
+            'Z-score; UMAP; HDBSCAN',
+            'Mean; NO DR; KMEANS',
+            'Mean; NO DR; DBSCAN',
+            'Mean; NO DR; HDBSCAN',
+            'Mean; PCA; KMEANS',
+            'Mean; PCA; DBSCAN',
+            'Mean; PCA; HDBSCAN',
+            'Mean; UMAP; KMEANS',
+            'Mean; UMAP; DBSCAN',
+            'Mean; UMAP; HDBSCAN',
+            'Min-Max; NO DR; KMEANS',
+            'Min-Max; NO DR; DBSCAN',
+            'Min-Max; NO DR; HDBSCAN',
+            'Min-Max; PCA; KMEANS',
+            'Min-Max; PCA; DBSCAN',
+            'Min-Max; PCA; HDBSCAN',
+            'Min-Max; UMAP; KMEANS',
+            'Min-Max; UMAP; DBSCAN',
+            'Min-Max; UMAP; HDBSCAN',
+        ]
 
-        markers_dict = dict(zip(key_names_format, markers))
+        # markers = [
+        #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o',
+        #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o',
+        #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o']
+
+        markers = [
+            'v', 'v', 'v',
+            '^', '^', '^', 
+            's', 's', 's',
+            'X', 'X', 'X',
+            'D', 'D', 'D',
+            'P', 'P', 'P',
+            '*', '*', '*',
+            'H', 'H', 'H',
+            'o', 'o', 'o'
+        ]
+
+        markers_dict = dict(zip(key_names, markers))
+        labels_dict = dict(zip(key_names, key_names_format))
 
         max_n_clusters = 0
 
         for m in metrics:
             metric = m
 
-            for dr_method in dr_methods:
-                for cl_method in cl_methods:
-                    metrics = pickle.load(
-                        open(
-                            f'tests/ensemble_test_results/{self.exp}metrics{dr_method}_{cl_method}.pkl',
-                            'rb'))
+            permutations = list(itertools.product(*[p_methods, dr_methods, cl_methods]))
+        
+            for ensemble in permutations:
+                p_method = ensemble[0]
+                dr_method = ensemble[1]
+                cl_method = ensemble[2]
+                
 
-                    metrics_sorted = metrics.transpose().sort_values(
-                        by=[f'{dr_method}_{cl_method}_acc']).to_numpy()
+            # for dr_method in dr_methods:
+            #     for cl_method in cl_methods:
+                metrics = pickle.load(
+                    open(
+                        f'tests/ensemble_test_results/{self.exp}metrics_{p_method}_{dr_method}_{cl_method}.pkl',
+                        'rb'))
 
-                    if metric == 'sil_score':
-                        ax = axs0.scatter(
-                            -1 * metrics_sorted[:, -2],
-                            metrics_sorted[:, metrics_dict[metric]],
-                            label=f'{dr_method}-{cl_method}',
-                            marker=markers_dict[f'{dr_method}-{cl_method}'],
-                            c=metrics_sorted[:, -1],
-                            cmap=cm.plasma,
-                            edgecolor='k',
-                            linewidths=0.5)
+                metrics_sorted = metrics.transpose().sort_values(
+                    by=[f'{dr_method}_{cl_method}_acc']).to_numpy()
 
-                        axs0.set_ylabel(y_label_dict[metric],
-                                        labelpad=5,
-                                        fontsize='xx-large',
-                                        fontname='Times New Roman')
+                if metric == 'sil_score':
+                    ax = axs0.scatter(
+                        -1 * metrics_sorted[:, -2],
+                        metrics_sorted[:, metrics_dict[metric]],
+                        label=labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        marker=markers_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        c=metrics_sorted[:, -1],
+                        cmap=cm.plasma,
+                        edgecolor='k',
+                        linewidths=0.5)
 
-                        axs0.set_xlabel(r'$\rm Accuracy$',
-                                        labelpad=5,
-                                        fontsize='xx-large',
-                                        fontname='Times New Roman')
+                    axs0.set_ylabel(y_label_dict[metric],
+                                    labelpad=5,
+                                    fontsize='xx-large',
+                                    fontname='Times New Roman')
 
-                    if metric == 'ch_score':
+                    axs0.set_xlabel(r'$\rm Accuracy$',
+                                    labelpad=5,
+                                    fontsize='xx-large',
+                                    fontname='Times New Roman')
 
-                        ax = axs1.scatter(
-                            -1 * metrics_sorted[:, -2],
-                            metrics_sorted[:, metrics_dict[metric]] /
-                            max(metrics_sorted[:, metrics_dict[metric]]),
-                            marker=markers_dict[f'{dr_method}-{cl_method}'],
-                            label=f'{dr_method}-{cl_method}',
-                            c=metrics_sorted[:, -1],
-                            cmap=cm.plasma,
-                            edgecolor='k',
-                            linewidths=0.5)
+                if metric == 'ch_score':
 
-                        axs1.set_ylim(0, 1)
+                    ax = axs1.scatter(
+                        -1 * metrics_sorted[:, -2],
+                        metrics_sorted[:, metrics_dict[metric]] /
+                        max(metrics_sorted[:, metrics_dict[metric]]),
+                        marker=markers_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        label=labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        c=metrics_sorted[:, -1],
+                        cmap=cm.plasma,
+                        edgecolor='k',
+                        linewidths=0.5)
 
-                        axs1.set_ylabel(y_label_dict[metric],
-                                        labelpad=5,
-                                        fontsize='xx-large',
-                                        fontname='Times New Roman')
+                    axs1.set_ylim(0, 1)
 
-                        axs1.set_xlabel(r'$\rm Accuracy$',
-                                        labelpad=5,
-                                        fontsize='xx-large',
-                                        fontname='Times New Roman')
+                    axs1.set_ylabel(y_label_dict[metric],
+                                    labelpad=5,
+                                    fontsize='xx-large',
+                                    fontname='Times New Roman')
 
-                    if metric == 'dbi_score':
+                    axs1.set_xlabel(r'$\rm Accuracy$',
+                                    labelpad=5,
+                                    fontsize='xx-large',
+                                    fontname='Times New Roman')
 
-                        ax = axs2.scatter(
-                            -1 * metrics_sorted[:, -2],
-                            metrics_sorted[:, metrics_dict[metric]] /
-                            max(metrics_sorted[:, metrics_dict[metric]]),
-                            marker=markers_dict[f'{dr_method}-{cl_method}'],
-                            label=f'{dr_method}-{cl_method}',
-                            c=metrics_sorted[:, -1],
-                            cmap=cm.plasma,
-                            edgecolor='k',
-                            linewidths=0.5)
+                if metric == 'dbi_score':
 
-                        axs2.set_ylim(0, 1)
+                    ax = axs2.scatter(
+                        -1 * metrics_sorted[:, -2],
+                        metrics_sorted[:, metrics_dict[metric]] /
+                        max(metrics_sorted[:, metrics_dict[metric]]),
+                        marker=markers_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        label=labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        c=metrics_sorted[:, -1],
+                        cmap=cm.plasma,
+                        edgecolor='k',
+                        linewidths=0.5)
 
-                        axs2.set_ylabel(y_label_dict[metric],
-                                        labelpad=5,
-                                        fontsize='xx-large',
-                                        fontname='Times New Roman')
+                    axs2.set_ylim(0, 1)
 
-                        axs2.set_xlabel(r'$\rm Accuracy$',
-                                        labelpad=5,
-                                        fontsize='xx-large',
-                                        fontname='Times New Roman')
+                    axs2.set_ylabel(y_label_dict[metric],
+                                    labelpad=5,
+                                    fontsize='xx-large',
+                                    fontname='Times New Roman')
 
-                    if max(metrics_sorted[:, -1]) > max_n_clusters:
-                        axis = ax
+                    axs2.set_xlabel(r'$\rm Accuracy$',
+                                    labelpad=5,
+                                    fontsize='xx-large',
+                                    fontname='Times New Roman')
+
+                if max(metrics_sorted[:, -1]) > max_n_clusters:
+                    axis = ax
 
         cbar = plt.colorbar(axis, ax=axs2)
         cbar.set_label(r'$\rm Number\ of\ clusters$',
@@ -364,27 +436,63 @@ class Plotters():
                      CH_scores, DBI_scores, n_clusters):
 
         key_names_all = [
-            'NO DR KMEANS',
-            'NO DR DBSCAN',
-            'NO DR HDBSCAN',
-            'PCA KMEANS',
-            'PCA DBSCAN',
-            'PCA HDBSCAN',
-            'UMAP KMEANS',
-            'UMAP DBSCAN',
-            'UMAP HDBSCAN',
+            'Z NO DR KMEANS',
+            'Z NO DR DBSCAN',
+            'Z NO DR HDBSCAN',
+            'Z PCA KMEANS',
+            'Z PCA DBSCAN',
+            'Z PCA HDBSCAN',
+            'Z UMAP KMEANS',
+            'Z UMAP DBSCAN',
+            'Z UMAP HDBSCAN',
+            'mean NO DR KMEANS',
+            'mean NO DR DBSCAN',
+            'mean NO DR HDBSCAN',
+            'mean PCA KMEANS',
+            'mean PCA DBSCAN',
+            'mean PCA HDBSCAN',
+            'mean UMAP KMEANS',
+            'mean UMAP DBSCAN',
+            'mean UMAP HDBSCAN',
+            'min_max NO DR KMEANS',
+            'min_max NO DR DBSCAN',
+            'min_max NO DR HDBSCAN',
+            'min_max PCA KMEANS',
+            'min_max PCA DBSCAN',
+            'min_max PCA HDBSCAN',
+            'min_max UMAP KMEANS',
+            'min_max UMAP DBSCAN',
+            'min_max UMAP HDBSCAN',
         ]
 
         key_names_format = [
-            'NO DR\n KMEANS',
-            'NO DR\n DBSCAN',
-            'NO DR\n HDBSCAN',
-            'PCA\n KMEANS',
-            'PCA\n DBSCAN',
-            'PCA\n HDBSCAN',
-            'UMAP\n KMEANS',
-            'UMAP\n DBSCAN',
-            'UMAP\n HDBSCAN',
+            'Z - NO DR - KMEANS',
+            'Z - NO DR - DBSCAN',
+            'Z - NO DR - HDBSCAN',
+            'Z - PCA - KMEANS',
+            'Z - PCA - DBSCAN',
+            'Z - PCA - HDBSCAN',
+            'Z - UMAP - KMEANS',
+            'Z - UMAP - DBSCAN',
+            'Z - UMAP - HDBSCAN',
+            'Mean - NO DR - KMEANS',
+            'Mean - NO DR - DBSCAN',
+            'Mean - NO DR - HDBSCAN',
+            'Mean - PCA - KMEANS',
+            'Mean - PCA - DBSCAN',
+            'Mean - PCA - HDBSCAN',
+            'Mean - UMAP - KMEANS',
+            'Mean - UMAP - DBSCAN',
+            'Mean - UMAP - HDBSCAN',
+            'Min_Max - NO DR - KMEANS',
+            'Min_Max - NO DR - DBSCAN',
+            'Min_Max - NO DR - HDBSCAN',
+            'Min_Max - PCA - KMEANS',
+            'Min_Max - PCA - DBSCAN',
+            'Min_Max - PCA - HDBSCAN',
+            'Min_Max - UMAP - KMEANS',
+            'Min_Max - UMAP - DBSCAN',
+            'Min_Max - UMAP - HDBSCAN',
         ]
 
         k_dict = {
@@ -609,27 +717,63 @@ class Plotters():
         h_dict = {z[0]: list(z[1:]) for z in zip(h_names_all, h_names_format)}
 
         key_names_all = [
-            'NO DR KMEANS',
-            'NO DR DBSCAN',
-            'NO DR HDBSCAN',
-            'PCA KMEANS',
-            'PCA DBSCAN',
-            'PCA HDBSCAN',
-            'UMAP KMEANS',
-            'UMAP DBSCAN',
-            'UMAP HDBSCAN',
+            'Z NO DR KMEANS',
+            'Z NO DR DBSCAN',
+            'Z NO DR HDBSCAN',
+            'Z PCA KMEANS',
+            'Z PCA DBSCAN',
+            'Z PCA HDBSCAN',
+            'Z UMAP KMEANS',
+            'Z UMAP DBSCAN',
+            'Z UMAP HDBSCAN',
+            'mean NO DR KMEANS',
+            'mean NO DR DBSCAN',
+            'mean NO DR HDBSCAN',
+            'mean PCA KMEANS',
+            'mean PCA DBSCAN',
+            'mean PCA HDBSCAN',
+            'mean UMAP KMEANS',
+            'mean UMAP DBSCAN',
+            'mean UMAP HDBSCAN',
+            'min_max NO DR KMEANS',
+            'min_max NO DR DBSCAN',
+            'min_max NO DR HDBSCAN',
+            'min_max PCA KMEANS',
+            'min_max PCA DBSCAN',
+            'min_max PCA HDBSCAN',
+            'min_max UMAP KMEANS',
+            'min_max UMAP DBSCAN',
+            'min_max UMAP HDBSCAN',
         ]
 
         key_names_format = [
-            'NO DR\n KMEANS',
-            'NO DR\n DBSCAN',
-            'NO DR\n HDBSCAN',
-            'PCA\n KMEANS',
-            'PCA\n DBSCAN',
-            'PCA\n HDBSCAN',
-            'UMAP\n KMEANS',
-            'UMAP\n DBSCAN',
-            'UMAP\n HDBSCAN',
+            'Z - NO DR - KMEANS',
+            'Z - NO DR - DBSCAN',
+            'Z - NO DR - HDBSCAN',
+            'Z - PCA - KMEANS',
+            'Z - PCA - DBSCAN',
+            'Z - PCA - HDBSCAN',
+            'Z - UMAP - KMEANS',
+            'Z - UMAP - DBSCAN',
+            'Z - UMAP - HDBSCAN',
+            'Mean - NO DR - KMEANS',
+            'Mean - NO DR - DBSCAN',
+            'Mean - NO DR - HDBSCAN',
+            'Mean - PCA - KMEANS',
+            'Mean - PCA - DBSCAN',
+            'Mean - PCA - HDBSCAN',
+            'Mean - UMAP - KMEANS',
+            'Mean - UMAP - DBSCAN',
+            'Mean - UMAP - HDBSCAN',
+            'Min_Max - NO DR - KMEANS',
+            'Min_Max - NO DR - DBSCAN',
+            'Min_Max - NO DR - HDBSCAN',
+            'Min_Max - PCA - KMEANS',
+            'Min_Max - PCA - DBSCAN',
+            'Min_Max - PCA - HDBSCAN',
+            'Min_Max - UMAP - KMEANS',
+            'Min_Max - UMAP - DBSCAN',
+            'Min_Max - UMAP - HDBSCAN',
         ]
 
         k_dict = {
@@ -649,6 +793,8 @@ class Plotters():
 
             h_names = hyper_names[i]
             h_values = value[0]
+            print(f'h_values: {h_names}, len: {len(h_names)}')
+            print(f'h_values: {h_values}, len: {len(h_values)}')
 
             for k in range(len(h_values)):
                 if isinstance(h_values[k], float):
@@ -770,33 +916,80 @@ class Plotters():
         h_dict = {z[0]: list(z[1:]) for z in zip(h_names_all, h_names_format)}
 
         key_names_all = [
-            'NO DR KMEANS',
-            'NO DR DBSCAN',
-            'NO DR HDBSCAN',
-            'PCA KMEANS',
-            'PCA DBSCAN',
-            'PCA HDBSCAN',
-            'UMAP KMEANS',
-            'UMAP DBSCAN',
-            'UMAP HDBSCAN',
+            'Z NO DR KMEANS',
+            'Z NO DR DBSCAN',
+            'Z NO DR HDBSCAN',
+            'Z PCA KMEANS',
+            'Z PCA DBSCAN',
+            'Z PCA HDBSCAN',
+            'Z UMAP KMEANS',
+            'Z UMAP DBSCAN',
+            'Z UMAP HDBSCAN',
+            'mean NO DR KMEANS',
+            'mean NO DR DBSCAN',
+            'mean NO DR HDBSCAN',
+            'mean PCA KMEANS',
+            'mean PCA DBSCAN',
+            'mean PCA HDBSCAN',
+            'mean UMAP KMEANS',
+            'mean UMAP DBSCAN',
+            'mean UMAP HDBSCAN',
+            'min_max NO DR KMEANS',
+            'min_max NO DR DBSCAN',
+            'min_max NO DR HDBSCAN',
+            'min_max PCA KMEANS',
+            'min_max PCA DBSCAN',
+            'min_max PCA HDBSCAN',
+            'min_max UMAP KMEANS',
+            'min_max UMAP DBSCAN',
+            'min_max UMAP HDBSCAN',
         ]
 
         key_names_format = [
-            'NO DR - KMEANS',
-            'NO DR - DBSCAN',
-            'NO DR - HDBSCAN',
-            'PCA - KMEANS',
-            'PCA - DBSCAN',
-            'PCA - HDBSCAN',
-            'UMAP - KMEANS',
-            'UMAP - DBSCAN',
-            'UMAP - HDBSCAN',
+            'Z-score - NO DR - KMEANS',
+            'Z-score - NO DR - DBSCAN',
+            'Z-score - NO DR - HDBSCAN',
+            'Z-score - PCA - KMEANS',
+            'Z-score - PCA - DBSCAN',
+            'Z-score - PCA - HDBSCAN',
+            'Z-score - UMAP - KMEANS',
+            'Z-score - UMAP - DBSCAN',
+            'Z-score - UMAP - HDBSCAN',
+            'Mean - NO DR - KMEANS',
+            'Mean - NO DR - DBSCAN',
+            'Mean - NO DR - HDBSCAN',
+            'Mean - PCA - KMEANS',
+            'Mean - PCA - DBSCAN',
+            'Mean - PCA - HDBSCAN',
+            'Mean - UMAP - KMEANS',
+            'Mean - UMAP - DBSCAN',
+            'Mean - UMAP - HDBSCAN',
+            'Min-Max - NO DR - KMEANS',
+            'Min-Max - NO DR - DBSCAN',
+            'Min-Max - NO DR - HDBSCAN',
+            'Min-Max - PCA - KMEANS',
+            'Min-Max - PCA - DBSCAN',
+            'Min-Max - PCA - HDBSCAN',
+            'Min-Max - UMAP - KMEANS',
+            'Min-Max - UMAP - DBSCAN',
+            'Min-Max - UMAP - HDBSCAN',
         ]
 
         colors = [
             'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
-            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive'
+            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
+            'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
+            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
+            'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
+            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
         ]
+
+        markers = [
+            's', 's', 's', 's', 's', 's', 's', 's', 's',
+            'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v',
+            'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',]
+
+        markers_dict = dict(zip(key_names_format, markers))
 
         colors_dict = dict(zip(key_names_format, colors))
 
@@ -846,10 +1039,10 @@ class Plotters():
             x_pareto_list.extend(abs(accuracies))
             y_pareto_list.extend(abs(n_clusters))
 
-            axs0.scatter(accuracies,
-                         n_clusters,
+            axs0.scatter(abs(accuracies),
+                         abs(n_clusters),
                          s=100,
-                         marker='s',
+                         marker=markers_dict[method[0]],
                          c=colors_dict[method[0]],
                          edgecolor='k',
                          linewidths=0.5,
@@ -858,16 +1051,16 @@ class Plotters():
 
             i += 1
 
-        axs0.scatter(
-            x_pareto_list,
-            y_pareto_list,
-            s=100,
-            marker='s',
-            edgecolor='k',
-            linewidths=0.5,
-            c=c_list,
-            alpha=0.9,
-        )
+        # axs0.scatter(
+        #     x_pareto_list,
+        #     y_pareto_list,
+        #     s=100,
+        #     marker=markers_dict[method[0]],
+        #     edgecolor='k',
+        #     linewidths=0.5,
+        #     c=c_list,
+        #     alpha=0.9,
+        # )
 
         m = 0
         met_list = []
@@ -975,33 +1168,80 @@ class Plotters():
         h_dict = {z[0]: list(z[1:]) for z in zip(h_names_all, h_names_format)}
 
         key_names_all = [
-            'NO DR KMEANS',
-            'NO DR DBSCAN',
-            'NO DR HDBSCAN',
-            'PCA KMEANS',
-            'PCA DBSCAN',
-            'PCA HDBSCAN',
-            'UMAP KMEANS',
-            'UMAP DBSCAN',
-            'UMAP HDBSCAN',
+            'Z NO DR KMEANS',
+            'Z NO DR DBSCAN',
+            'Z NO DR HDBSCAN',
+            'Z PCA KMEANS',
+            'Z PCA DBSCAN',
+            'Z PCA HDBSCAN',
+            'Z UMAP KMEANS',
+            'Z UMAP DBSCAN',
+            'Z UMAP HDBSCAN',
+            'mean NO DR KMEANS',
+            'mean NO DR DBSCAN',
+            'mean NO DR HDBSCAN',
+            'mean PCA KMEANS',
+            'mean PCA DBSCAN',
+            'mean PCA HDBSCAN',
+            'mean UMAP KMEANS',
+            'mean UMAP DBSCAN',
+            'mean UMAP HDBSCAN',
+            'min_max NO DR KMEANS',
+            'min_max NO DR DBSCAN',
+            'min_max NO DR HDBSCAN',
+            'min_max PCA KMEANS',
+            'min_max PCA DBSCAN',
+            'min_max PCA HDBSCAN',
+            'min_max UMAP KMEANS',
+            'min_max UMAP DBSCAN',
+            'min_max UMAP HDBSCAN',
         ]
 
         key_names_format = [
-            'NO DR - KMEANS',
-            'NO DR - DBSCAN',
-            'NO DR - HDBSCAN',
-            'PCA - KMEANS',
-            'PCA - DBSCAN',
-            'PCA - HDBSCAN',
-            'UMAP - KMEANS',
-            'UMAP - DBSCAN',
-            'UMAP - HDBSCAN',
+            'Z-score - NO DR - KMEANS',
+            'Z-score - NO DR - DBSCAN',
+            'Z-score - NO DR - HDBSCAN',
+            'Z-score - PCA - KMEANS',
+            'Z-score - PCA - DBSCAN',
+            'Z-score - PCA - HDBSCAN',
+            'Z-score - UMAP - KMEANS',
+            'Z-score - UMAP - DBSCAN',
+            'Z-score - UMAP - HDBSCAN',
+            'Mean - NO DR - KMEANS',
+            'Mean - NO DR - DBSCAN',
+            'Mean - NO DR - HDBSCAN',
+            'Mean - PCA - KMEANS',
+            'Mean - PCA - DBSCAN',
+            'Mean - PCA - HDBSCAN',
+            'Mean - UMAP - KMEANS',
+            'Mean - UMAP - DBSCAN',
+            'Mean - UMAP - HDBSCAN',
+            'Min-Max - NO DR - KMEANS',
+            'Min-Max - NO DR - DBSCAN',
+            'Min-Max - NO DR - HDBSCAN',
+            'Min-Max - PCA - KMEANS',
+            'Min-Max - PCA - DBSCAN',
+            'Min-Max - PCA - HDBSCAN',
+            'Min-Max - UMAP - KMEANS',
+            'Min-Max - UMAP - DBSCAN',
+            'Min-Max - UMAP - HDBSCAN',
         ]
 
         colors = [
             'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
-            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive'
+            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
+            'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
+            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
+            'tab:blue', 'tab:orange', 'tab:green', 'tab:red', 'tab:purple',
+            'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
         ]
+
+        markers = [
+            's', 's', 's', 's', 's', 's', 's', 's', 's',
+            'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v',
+            'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',]
+
+        markers_dict = dict(zip(key_names_format, markers))
 
         colors_dict = dict(zip(key_names_format, colors))
 
@@ -1083,10 +1323,10 @@ class Plotters():
                 x_pareto_list.append(abs(accuracies))
                 y_pareto_list.append(abs(n_clusters))
 
-            axs0.scatter(accuracies,
-                         n_clusters,
+            axs0.scatter(abs(accuracies),
+                         abs(n_clusters),
                          s=100,
-                         marker='s',
+                         marker=markers_dict[method[0]],
                          c=colors_dict[method[0]],
                          edgecolor='k',
                          linewidths=0.5,
@@ -1095,16 +1335,16 @@ class Plotters():
 
             i += 1
 
-        axs0.scatter(
-            x_pareto_list,
-            y_pareto_list,
-            s=100,
-            marker='s',
-            edgecolor='k',
-            linewidths=0.5,
-            c=c_list,
-            alpha=0.9,
-        )
+        # axs0.scatter(
+        #     x_pareto_list,
+        #     y_pareto_list,
+        #     s=100,
+        #     marker='s',
+        #     edgecolor='k',
+        #     linewidths=0.5,
+        #     c=c_list,
+        #     alpha=0.9,
+        # )
 
         m = 0
         met_list = []

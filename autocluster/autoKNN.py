@@ -7,6 +7,7 @@ from datetime import datetime, date
 import csv
 import pickle
 import pandas as pd
+import itertools
 
 
 class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
@@ -18,9 +19,9 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
     def __init__(self, *args, **kwargs):
         super(AutoKNN, self).__init__(*args, **kwargs)
 
-    def get_data(self, path, exp='default'):
+    def get_data(self, path, exp='default', p_method = 'mean'):
         X_train, X_test, y_train, y_test = self.load_data(
-            path=path, normalize_method="mean")
+            path=path, normalize_method=p_method)
 
         self.X_train = X_train
         self.X_test = X_test
@@ -31,86 +32,87 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
         return None
 
     def optimize(self,
+                 p_methods, 
                  dr_methods,
                  cl_methods,
                  termination='test',
-                 mode='supervised'):
-        # dr_methods = ['NO DR', 'PCA']  # , 'UMAP']
-        # cl_methods = ['KMEANS', 'DBSCAN']  # , 'HDBSCAN']
+                 mode='supervised',
+                 data_path = None, 
+                 exp = 'default'):
 
+        self.exp = exp
         self.ensembles = []
         self.hyperparameters_list = []
         self.solutions_list = []
         self.accuracies_list = []
         self.n_labels_list = []
 
-        for dr_method in dr_methods:
-            for cl_method in cl_methods:
+        permutations = list(itertools.product(*[p_methods, dr_methods, cl_methods]))
+        
+        for ensemble in permutations:
 
-                print('===================================================')
-                print(f'         Ensemble: {dr_method} + {cl_method}      ')
-                print('===================================================')
+            p_method = ensemble[0]
+            dr_method = ensemble[1]
+            cl_method = ensemble[2]
 
-                methods = [dr_method, cl_method]
-                #solver = Solvers()
-                res, hyperparameters, n_labels, sil_scores, ch_scores, dbi_scores, it_accuracies, it_clusters = self.genSolver(
-                    train_data=np.asarray(self.X_train),
-                    test_data=self.X_test,
-                    true_labels=self.y_test,
-                    methods=methods,
-                    termination=termination,
-                    mode=mode)
-                #best_X, best_f = self.get_best(res)
+            self.get_data(path=data_path, p_method=p_method, exp=self.exp)
 
-                self.ensembles.append((self.dr_method, self.cl_method))
-                self.hyperparameters_list.append(hyperparameters)
-                res.F = -1 * res.F
+            print('======================================================')
+            print(f' Ensemble: {p_method} + {dr_method} + {cl_method} ')
+            print('======================================================')
 
-                # if isinstance(res.X[0], int):
-                #     res.X = list([i for i in res.X])
-                #     res.F = list([i for i in res.F])
+            methods = [p_method, dr_method, cl_method]
 
-                self.solutions_list.append((res.X))
-                self.accuracies_list.append((res.F))
-                self.n_labels_list.append(n_labels)
+            res, hyperparameters, n_labels, sil_scores, ch_scores, dbi_scores, it_accuracies, it_clusters = self.genSolver(
+                train_data=np.asarray(self.X_train),
+                test_data=self.X_test,
+                true_labels=self.y_test,
+                methods=methods,
+                termination=termination,
+                mode=mode)
 
-                metrics = [
+            self.ensembles.append((p_method, self.dr_method, self.cl_method))
+            self.hyperparameters_list.append(hyperparameters)
+            res.F = -1 * res.F
+
+            self.solutions_list.append((res.X))
+            self.accuracies_list.append((res.F))
+            self.n_labels_list.append(n_labels)
+
+            metrics = [
                     sil_scores, ch_scores, dbi_scores, it_accuracies,
                     it_clusters
                 ]
 
-                # print('---------------------------')
-                # print(metrics)
+            # print('---------------------------')
+            # print(metrics)
 
-                metrics = pd.DataFrame(metrics,
-                                       index=[
-                                           f'{dr_method}_{cl_method}_sil',
-                                           f'{dr_method}_{cl_method}_ch',
-                                           f'{dr_method}_{cl_method}_dbi',
-                                           f'{dr_method}_{cl_method}_acc',
-                                           f'{dr_method}_{cl_method}_cl',
-                                       ])
+            metrics = pd.DataFrame(metrics,
+                                    index=[
+                                        f'{dr_method}_{cl_method}_sil',
+                                        f'{dr_method}_{cl_method}_ch',
+                                        f'{dr_method}_{cl_method}_dbi',
+                                        f'{dr_method}_{cl_method}_acc',
+                                        f'{dr_method}_{cl_method}_cl',
+                                    ])
 
-                # metrics_file = open(
-                #     f'tests/ensemble_test_results/{self.exp}metrics{dr_method}_{cl_method}.pkl',
-                #     'wb')
-                # pickle.dump(metrics, metrics_file)
+            metrics_file = open(
+                f'tests/ensemble_test_results/{self.exp}metrics_{p_method}_{dr_method}_{cl_method}.pkl',
+                'wb')
+            pickle.dump(metrics, metrics_file)
 
-        # h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
-        #               'wb')
-        # pickle.dump(self.hyperparameters_list, h_file)
-        #print(self.accuracies_list)
+        h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
+                      'wb')
+        pickle.dump(self.hyperparameters_list, h_file)
+        print(self.accuracies_list)
+
         res_dict = {
             z[0]: list(z[1:])
             for z in zip(self.ensembles, self.solutions_list,
                          self.accuracies_list)
         }
 
-        # res_file = open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl',
-        #                 'wb')
-        # pickle.dump(res_dict, res_file)
-
-        return res_dict #None
+        return res_dict, self.hyperparameters_list
 
     def show_solutions(self):
         self.res_dict = {
