@@ -20,6 +20,7 @@ from mpl_toolkits.axes_grid1.inset_locator import (InsetPosition, inset_axes,
 from math import log
 import itertools
 import pickle
+from matplotlib.lines import Line2D
 
 
 class Plotters():
@@ -128,7 +129,7 @@ class Plotters():
         plt.show()
 
     def plot_metrics_opt_3d(self, metrics, p_methods, dr_methods, cl_methods):
-        fig = plt.figure(figsize=(14, 7))
+        fig = plt.figure(figsize=(16, 7))
         axs0 = fig.add_subplot(1, 3, 1)
         axs1 = fig.add_subplot(1, 3, 2)
         axs2 = fig.add_subplot(1, 3, 3)
@@ -208,17 +209,21 @@ class Plotters():
         #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o',
         #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o']
 
-        markers = [
-            'v', 'v', 'v',
-            '^', '^', '^', 
-            's', 's', 's',
-            'X', 'X', 'X',
-            'D', 'D', 'D',
-            'P', 'P', 'P',
-            '*', '*', '*',
-            'H', 'H', 'H',
-            'o', 'o', 'o'
-        ]
+        # markers = [
+        #     'v', 'v', 'v',
+        #     '^', '^', '^', 
+        #     's', 's', 's',
+        #     'X', 'X', 'X',
+        #     'D', 'D', 'D',
+        #     'P', 'P', 'P',
+        #     '*', '*', '*',
+        #     'H', 'H', 'H',
+        #     'o', 'o', 'o'
+        # ]
+
+        markers = list(Line2D.markers.keys())
+        
+        markers = markers[2:(2+len(key_names))]
 
         markers_dict = dict(zip(key_names, markers))
         labels_dict = dict(zip(key_names, key_names_format))
@@ -396,31 +401,34 @@ class Plotters():
         axs0.set_xlim(0, )
         axs1.set_xlim(0, )
         axs2.set_xlim(0, )
-        axs0.legend(frameon=True,
-                    loc='best',
-                    ncol=1,
-                    fontsize='small',
-                    framealpha=0.7,
-                    fancybox=False)
+        
+        # axs0.legend(frameon=True,
+        #             loc='best',
+        #             ncol=1,
+        #             fontsize='small',
+        #             framealpha=0.7,
+        #             fancybox=False)
 
-        axs1.legend(frameon=True,
-                    loc='best',
-                    ncol=1,
-                    fontsize='small',
-                    framealpha=0.7,
-                    fancybox=False)
-        axs2.legend(frameon=True,
-                    loc='best',
-                    ncol=1,
-                    fontsize='small',
-                    framealpha=0.7,
-                    fancybox=False)
+        # axs1.legend(frameon=True,
+        #             loc='best',
+        #             ncol=1,
+        #             fontsize='small',
+        #             framealpha=0.7,
+        #             fancybox=False)
 
+        # axs2.legend(frameon=True,
+        #             loc='upper left',
+        #             ncol=1,
+        #             fontsize='small',
+        #             framealpha=0.7,
+        #             fancybox=False, 
+        #             bbox_to_anchor=(0.9, 1))
+        #fig.legend(loc="upper center", ncol=6)
         #axleg = plt.gca()
-        for ax in [axs0, axs1, axs2]:
-            leg = ax.get_legend()
-            for el in leg.legendHandles:
-                el.set_color('k')
+        #for ax in [axs2]:
+        # leg = axs2.get_legend()
+        # for el in leg.legendHandles:
+        #     el.set_color('k')
 
         plt.tight_layout()
         # ax2.legend(frameon = False, loc=1, fontsize = 'medium')

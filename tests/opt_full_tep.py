@@ -36,7 +36,7 @@ def test():
                         cl_methods=cl_methods, 
                         termination='test', 
                         data_path=r'C:\\Users\\lbrice1\\Documents\\GitHub Repos\\fault_detection\\data\\processed\\Full_TEP.xlsx', 
-                        exp='test')
+                        exp='run')
 
     print(res_dict)
     knn.show_solutions()
@@ -50,6 +50,7 @@ def test():
                             dr_methods=dr_methods,
                             cl_methods=cl_methods
                             )
+
 
 
     # knn.plot_results()
