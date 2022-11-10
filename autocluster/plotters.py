@@ -128,6 +128,51 @@ class Plotters():
 
         plt.show()
 
+    def plot_init(self):
+        fig = plt.figure(figsize=(5, 5))
+        axs0 = fig.add_subplot(1, 1, 1)
+
+        axs0.plot([0, 1], [0, 1], label = 'init')
+
+        for tick in axs0.get_xticklabels():
+            tick.set_fontname("Times New Roman")
+        for tick in axs0.get_yticklabels():
+            tick.set_fontname("Times New Roman")
+
+        self.restore_minor_ticks_log_plot(axs0)
+
+        axs0.xaxis.set_major_locator(AutoLocator())
+        axs0.xaxis.set_minor_locator(AutoMinorLocator())
+
+        axs0.tick_params(direction='out',
+                         pad=10,
+                         length=9,
+                         width=1.0,
+                         labelsize='x-large')
+        axs0.tick_params(which='minor',
+                         direction='out',
+                         pad=10,
+                         length=5,
+                         width=1.0,
+                         labelsize='x-large')
+
+        for axis in ['top', 'bottom', 'left', 'right']:
+            axs0.spines[axis].set_linewidth(1.0)
+
+        axs0.set_xlim(0, )
+        #axs0.set_ylim(0, )
+
+        plt.rcParams['mathtext.fontset'] = 'cm'
+        plt.rcParams["font.family"] = "serif"
+        plt.rcParams["font.serif"] = ["Times New Roman"
+                                      ] + plt.rcParams["font.serif"]
+        plt.rcParams['font.size'] = 15
+        fig.legend(frameon=False, shadow=True, framealpha=1, loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.2), mode='expand', borderaxespad=0, ncol=4, fontsize='x-small')
+        plt.tight_layout()
+
+        return None
+
+
     def plot_metrics_opt_3d(self, metrics, p_methods, dr_methods, cl_methods):
         fig = plt.figure(figsize=(16, 7))
         axs0 = fig.add_subplot(1, 3, 1)
@@ -204,6 +249,36 @@ class Plotters():
             'Min-Max; UMAP; HDBSCAN',
         ]
 
+        key_names_format1 = [
+            'Z-score; NO DR',
+            '_nolegend_',
+            '_nolegend_',
+            'Z-score; PCA',
+            '_nolegend_',
+            '_nolegend_',
+            'Z-score; UMAP',
+            '_nolegend_',
+            '_nolegend_',
+            'Mean; NO DR',
+            '_nolegend_',
+            '_nolegend_',
+            'Mean; PCA',
+            '_nolegend_',
+            '_nolegend_',
+            'Mean; UMAP',
+            '_nolegend_',
+            '_nolegend_',
+            'Min-Max; NO DR',
+            '_nolegend_',
+            '_nolegend_',
+            'Min-Max; PCA',
+            '_nolegend_',
+            '_nolegend_',
+            'Min-Max; UMAP',
+            '_nolegend_',
+            '_nolegend_',
+        ]
+
         # markers = [
         #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o',
         #     'v', '^', 's', 'X', 'D', 'P', '*', 'H', 'o',
@@ -220,13 +295,19 @@ class Plotters():
         #     'H', 'H', 'H',
         #     'o', 'o', 'o'
         # ]
+        markers = [
+            's', 's', 's',   'D', 'D', 'D',   'd', 'd', 'd',
+            'v', 'v', 'v',   '^', '^', '^',   '>', '>', '>',
+            '*', '*', '*',   'X', 'X', 'X',   'P', 'P', 'P',
+            ]
 
-        markers = list(Line2D.markers.keys())
+        #markers = list(Line2D.markers.keys())
         
-        markers = markers[2:(2+len(key_names))]
+        #markers = markers[2:(2+len(key_names))]
 
         markers_dict = dict(zip(key_names, markers))
         labels_dict = dict(zip(key_names, key_names_format))
+        labels_dict1 = dict(zip(key_names, key_names_format1))
 
         max_n_clusters = 0
 
@@ -255,7 +336,7 @@ class Plotters():
                     ax = axs0.scatter(
                         -1 * metrics_sorted[:, -2],
                         metrics_sorted[:, metrics_dict[metric]],
-                        label=labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        label=labels_dict1[f'{p_method}; {dr_method}; {cl_method}'],
                         marker=markers_dict[f'{p_method}; {dr_method}; {cl_method}'],
                         c=metrics_sorted[:, -1],
                         cmap=cm.plasma,
@@ -279,7 +360,7 @@ class Plotters():
                         metrics_sorted[:, metrics_dict[metric]] /
                         max(metrics_sorted[:, metrics_dict[metric]]),
                         marker=markers_dict[f'{p_method}; {dr_method}; {cl_method}'],
-                        label=labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        label='_nolegend_',#labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
                         c=metrics_sorted[:, -1],
                         cmap=cm.plasma,
                         edgecolor='k',
@@ -304,7 +385,7 @@ class Plotters():
                         metrics_sorted[:, metrics_dict[metric]] /
                         max(metrics_sorted[:, metrics_dict[metric]]),
                         marker=markers_dict[f'{p_method}; {dr_method}; {cl_method}'],
-                        label=labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
+                        label='_nolegend_',#labels_dict[f'{p_method}; {dr_method}; {cl_method}'],
                         c=metrics_sorted[:, -1],
                         cmap=cm.plasma,
                         edgecolor='k',
@@ -423,7 +504,7 @@ class Plotters():
         #             framealpha=0.7,
         #             fancybox=False, 
         #             bbox_to_anchor=(0.9, 1))
-        #fig.legend(loc="upper center", ncol=6)
+        fig.legend(bbox_to_anchor=(0.5, 1.02), loc="center", bbox_transform=fig.transFigure, ncol=9, fontsize='small', fancybox=False, shadow=True, framealpha=1)
         #axleg = plt.gca()
         #for ax in [axs2]:
         # leg = axs2.get_legend()
@@ -992,10 +1073,14 @@ class Plotters():
             'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive',
         ]
 
+        # markers = [
+        #     's', 's', 's', 's', 's', 's', 's', 's', 's',
+        #     'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v',
+        #     'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',]
         markers = [
-            's', 's', 's', 's', 's', 's', 's', 's', 's',
-            'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v',
-            'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',]
+            's', 's', 's',   'D', 'D', 'D',   'd', 'd', 'd',
+            'v', 'v', 'v',   '^', '^', '^',   '>', '>', '>',
+            'o', 'o', 'o',   'X', 'X', 'X',   'P', 'P', 'P',]
 
         markers_dict = dict(zip(key_names_format, markers))
 
@@ -1006,8 +1091,9 @@ class Plotters():
             for z in zip(key_names_all, key_names_format)
         }
 
-        fig = plt.figure(figsize=(13.5, 9))
-        axs0 = fig.add_subplot(1, 1, 1)
+        fig = plt.figure(figsize=(20, 8))
+        axs0 = fig.add_subplot(1, 2, 1)
+        axs1 = fig.add_subplot(1, 2, 2)
 
         i = 0
         x_pareto_list = []
@@ -1092,17 +1178,18 @@ class Plotters():
                               fontfamily='serif',
                               fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (200, 220 - m),
-                              xycoords='figure points',
+                axs1.annotate(f'{i}: ' + txt, (0, 0.95 - m),
+                              #xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
                               fontweight='bold',
-                              fontsize='small')
+                              fontsize='small',
+                              bbox=dict(boxstyle="square,pad=0.3", fc="w", ec="0.5", lw=0, alpha = 0.5))
 
                 met_list.append(met)
 
-                m += 15
-
+                m += 0.05
+        axs1.set_axis_off()
         axs0.set_yscale('log')
         axs0.set_ylabel(r'$\rm Number\ of\ clusters$',
                         labelpad=5,
@@ -1147,7 +1234,7 @@ class Plotters():
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
         plt.rcParams['font.size'] = 15
-        axs0.legend(frameon=False, loc='upper left', ncol=2, fontsize='small')
+        axs0.legend(frameon=False, shadow=True, framealpha=1, loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.2), mode='expand', borderaxespad=0, ncol=3, fontsize='x-small')
         plt.tight_layout()
 
         #figname = 'Fig2'
@@ -1245,9 +1332,9 @@ class Plotters():
         ]
 
         markers = [
-            's', 's', 's', 's', 's', 's', 's', 's', 's',
-            'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v', 'v',
-            'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o', 'o',]
+            's', 's', 's',   'D', 'D', 'D',   'd', 'd', 'd',
+            'v', 'v', 'v',   '^', '^', '^',   '>', '>', '>',
+            'o', 'o', 'o',   'X', 'X', 'X',   'P', 'P', 'P',]
 
         markers_dict = dict(zip(key_names_format, markers))
 
@@ -1258,8 +1345,9 @@ class Plotters():
             for z in zip(key_names_all, key_names_format)
         }
 
-        fig = plt.figure(figsize=(12, 9))
-        axs0 = fig.add_subplot(1, 1, 1)
+        fig = plt.figure(figsize=(20, 9))
+        axs0 = fig.add_subplot(1, 2, 1)
+        axs1 = fig.add_subplot(1, 2, 2)
 
         i = 0
         x_pareto_list = []
@@ -1376,8 +1464,8 @@ class Plotters():
                     fontfamily='serif',
                     fontweight='bold')
 
-                axs0.annotate(f'{i}: ' + txt, (100, 180 - m),
-                              xycoords='figure points',
+                axs1.annotate(f'{i}: ' + txt, (0, 0.95 - m),
+                              #xycoords='figure points',
                               color=c_list[i],
                               fontfamily='serif',
                               fontweight='bold',
@@ -1385,10 +1473,11 @@ class Plotters():
 
                 met_list.append(met)
 
-                m += 15
+                m += 0.05
+        axs1.set_axis_off()
 
         #axs0.set_yscale('log')
-        axs0.set_ylabel(r'$\rm Normalized\ Davies-Bouldin\ Index$',
+        axs0.set_ylabel(r'$\rm Number\ of\ clusters$',
                         labelpad=5,
                         fontsize='x-large',
                         fontname='Times New Roman')
@@ -1431,7 +1520,8 @@ class Plotters():
         plt.rcParams["font.serif"] = ["Times New Roman"
                                       ] + plt.rcParams["font.serif"]
         plt.rcParams['font.size'] = 15
-        axs0.legend(frameon=False, loc='upper left', ncol=2, fontsize='small')
+        #axs0.legend(frameon=False, loc='upper left', ncol=2, fontsize='small')
+        axs0.legend(frameon=False, shadow=True, framealpha=1, loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.2), mode='expand', borderaxespad=0, ncol=3, fontsize='x-small')
 
         plt.tight_layout()
 

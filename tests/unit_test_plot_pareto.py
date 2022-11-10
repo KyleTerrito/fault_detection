@@ -4,24 +4,34 @@ import pickle
 
 def test():
 
-    exp = 'met_pyro'
+    exp = 'aiche_pyro'
 
     plotter = Plotters(exp=exp)
+    # plotter.plot_init()
 
-    hyperparameters_list = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb'))
+    with open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb') as handle:
+        hyperparameters_list = pickle.load(handle)
 
-    res_dict = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb'))
+    with open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb') as handle:
+        res_dict = pickle.load(handle)
+
+    plotter.plot_pareto(res_dict, hyperparameters_list)
+
+    with open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb') as handle:
+        hyperparameters_list = pickle.load(handle)
+
+    with open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb') as handle:
+        res_dict = pickle.load(handle)
 
     plotter.plot_pareto(res_dict, hyperparameters_list)
 
-    hyperparameters_list = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb'))
+    # hyperparameters_list = pickle.load(
+    #     open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb'))
 
-    res_dict = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb'))
+    # res_dict = pickle.load(
+    #     open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb'))
 
-    plotter.plot_pareto(res_dict, hyperparameters_list)
+    # plotter.plot_pareto(res_dict, hyperparameters_list)
+
 
     return None

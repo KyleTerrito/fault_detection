@@ -34,15 +34,19 @@ def test():
                         p_methods=p_methods,
                         dr_methods=dr_methods, 
                         cl_methods=cl_methods, 
-                        termination='test', 
-                        data_path=r'C:\\Users\\lbrice1\\Documents\\GitHub Repos\\fault_detection\\data\\processed\\Full_TEP.xlsx', 
-                        exp='run')
+                        termination='run', 
+                        data_path=r'C:\\Users\\lbrice1\\Documents\\GitHub Repos\\fault_detection\\data\\processed\\TEP_Selected_Faults.xlsx', 
+                        exp='aiche_tep')
 
     print(res_dict)
     knn.show_solutions()
 
-    plotter = Plotters(exp='test')
+    plotter = Plotters(exp='aiche_tep')
+    
+    plotter.plot_init()
+    
     plotter.plot_pareto(res_dict, hyperparameters_list)
+
 
     plotter.plot_metrics_opt_3d(
                             metrics=['sil_score', 'ch_score', 'dbi_score'],
@@ -50,9 +54,5 @@ def test():
                             dr_methods=dr_methods,
                             cl_methods=cl_methods
                             )
-
-
-
-    # knn.plot_results()
 
     return None

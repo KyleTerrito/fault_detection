@@ -7,10 +7,37 @@ import numpy as np
 
 
 def test():
+    p_methods = [
+                    'Z',
+                    'mean',
+                    'min_max'
+                ]
+    
+    dr_methods = [
+                    'NO DR', 
+                    'PCA', 
+                    'UMAP'
+                ]
 
-    plotter = Plotters(exp='met_pyro')
+    cl_methods = [
+                    'KMEANS', 
+                    'DBSCAN', 
+                    'HDBSCAN'
+                ]
 
-    plotter.plot_metrics_opt_3d(metrics=['sil_score', 'ch_score', 'dbi_score'])
-    plotter.plot_metrics_opt_3d(metrics=['sil_score', 'ch_score', 'dbi_score'])
+    plotter = Plotters(exp='aiche_tep')
 
+    plotter.plot_metrics_opt_3d(
+                            metrics=['sil_score', 'ch_score', 'dbi_score'],
+                            p_methods=p_methods, 
+                            dr_methods=dr_methods,
+                            cl_methods=cl_methods
+                            )
+
+    plotter.plot_metrics_opt_3d(
+                            metrics=['sil_score', 'ch_score', 'dbi_score'],
+                            p_methods=p_methods, 
+                            dr_methods=dr_methods,
+                            cl_methods=cl_methods
+                            )
     return None

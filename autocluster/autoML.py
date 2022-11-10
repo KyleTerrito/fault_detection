@@ -234,7 +234,8 @@ class genTuner(ElementwiseProblem):
             out["F"] = [-1 * accuracy, n_train_labels]
 
         elif self.mode == 'unsupervised':
-            out["F"] = [-1 * sil_score, dbi_score]
+            # out["F"] = [-1 * sil_score, dbi_score]
+            out["F"] = [-1 * sil_score, n_train_labels]
 
         #return self.sil_scores, self.ch_scores, self.dbi_scores
 

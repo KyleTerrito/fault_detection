@@ -101,9 +101,12 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
                 'wb')
             pickle.dump(metrics, metrics_file)
 
-        h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
-                      'wb')
-        pickle.dump(self.hyperparameters_list, h_file)
+        # h_file = open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl',
+        #               'wb')
+        # pickle.dump(self.hyperparameters_list, h_file)
+        with open(f'tests/ensemble_test_results/{self.exp}_h_list.pkl', 'wb') as handle:
+            pickle.dump(self.hyperparameters_list, handle)
+
         print(self.accuracies_list)
 
         res_dict = {
@@ -111,7 +114,13 @@ class AutoKNN(DataPreprocessing, Solvers, Metrics, Plotters):
             for z in zip(self.ensembles, self.solutions_list,
                          self.accuracies_list)
         }
+        # res_file = open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl',
+        #                 'wb')
+        # pickle.dump(res_dict, res_file)
 
+        with open(f'tests/ensemble_test_results/{self.exp}_res_dict.pkl', 'wb') as handle:
+            pickle.dump(res_dict, handle)
+        
         return res_dict, self.hyperparameters_list
 
     def show_solutions(self):

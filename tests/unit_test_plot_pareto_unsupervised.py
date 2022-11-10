@@ -4,26 +4,24 @@ import pickle
 
 def test():
 
-    #knn.get_data(path='data/processed/TEP_Selected_Faults.xlsx')
-
-    exp = 'met_pyro'
-
+    exp = 'aiche_pyro_ul'
     plotter = Plotters(exp=exp)
 
-    hyperparameters_list = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb'))
+    with open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb') as handle:
+        hyperparameters_list = pickle.load(handle)
 
-    res_dict = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb'))
+    with open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb') as handle:
+        res_dict = pickle.load(handle)
+
+    plotter.plot_pareto_unsupervised(res_dict, hyperparameters_list)
+    
+    with open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb') as handle:
+        hyperparameters_list = pickle.load(handle)
+
+    with open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb') as handle:
+        res_dict = pickle.load(handle)
 
     plotter.plot_pareto_unsupervised(res_dict, hyperparameters_list)
 
-    hyperparameters_list = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb'))
-
-    res_dict = pickle.load(
-        open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb'))
-
-    plotter.plot_pareto_unsupervised(res_dict, hyperparameters_list)
 
     return None
