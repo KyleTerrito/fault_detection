@@ -16,7 +16,7 @@ def test():
         res_dict = pickle.load(handle)
 
     plotter.plot_pareto(res_dict, hyperparameters_list)
-
+    
     with open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb') as handle:
         hyperparameters_list = pickle.load(handle)
 
@@ -24,14 +24,6 @@ def test():
         res_dict = pickle.load(handle)
 
     plotter.plot_pareto(res_dict, hyperparameters_list)
-
-    # hyperparameters_list = pickle.load(
-    #     open(f'tests/ensemble_test_results/{exp}_h_list.pkl', 'rb'))
-
-    # res_dict = pickle.load(
-    #     open(f'tests/ensemble_test_results/{exp}_res_dict.pkl', 'rb'))
-
-    # plotter.plot_pareto(res_dict, hyperparameters_list)
 
 
     return None

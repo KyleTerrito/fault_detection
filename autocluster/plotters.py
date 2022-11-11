@@ -1184,7 +1184,7 @@ class Plotters():
                               fontfamily='serif',
                               fontweight='bold',
                               fontsize='small',
-                              bbox=dict(boxstyle="square,pad=0.3", fc="w", ec="0.5", lw=0, alpha = 0.5))
+                              )#bbox=dict(boxstyle="square,pad=0.3", fc="w", ec="0.5", lw=0, alpha = 0.5))
 
                 met_list.append(met)
 

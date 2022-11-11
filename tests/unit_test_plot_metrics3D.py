@@ -25,7 +25,7 @@ def test():
                     'HDBSCAN'
                 ]
 
-    plotter = Plotters(exp='aiche_tep')
+    plotter = Plotters(exp='aiche_pyro')
 
     plotter.plot_metrics_opt_3d(
                             metrics=['sil_score', 'ch_score', 'dbi_score'],
