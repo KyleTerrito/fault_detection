@@ -45,7 +45,8 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/lbrice1/fault_detection",
     packages=find_packages(),
-    install_requires=requirements,
+    install_requires=['numpy >= 1.7', 'scipy >= 0.9',
+                      'scikit-learn >= 0.21', 'numexpr >= 2.5'],
     classifiers=[
         "Programming Language :: Python :: 3.8",
     ],
